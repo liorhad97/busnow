@@ -1,5 +1,5 @@
-import 'package:busnow/core/constants/colors-file.dart';
-import 'package:busnow/core/constants/dimensions-file.dart';
+import 'package:busnow/core/constants/colors.dart';
+import 'package:busnow/core/constants/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

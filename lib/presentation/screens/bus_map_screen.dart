@@ -1,15 +1,15 @@
 import 'dart:ui';
 
-import 'package:busnow/core/constants/colors-file.dart';
-import 'package:busnow/core/constants/dimensions-file.dart';
+import 'package:busnow/core/constants/colors.dart';
+import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/constants/dir/icons_dir.dart';
 import 'package:busnow/presentation/widgets/animated_loading_indicator.dart';
 import 'package:busnow/presentation/widgets/bus_refresh_button.dart';
 import 'package:busnow/presentation/widgets/bus_schedule_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 
 import '../../domain/models/bus_stop_model.dart';
 import '../providers/bus_providers.dart';
@@ -23,8 +23,8 @@ class BusMapScreen extends ConsumerStatefulWidget {
 
 class _BusMapScreenState extends ConsumerState<BusMapScreen>
     with TickerProviderStateMixin {
-  final MapController _mapController = MapController();
-  Map<String, Marker> _markers = {};
+  PlatformMapController? _mapController;
+  Set<Marker> _markers = {};
   late AnimationController _mapFadeController;
   late AnimationController _markerAnimController;
 
@@ -59,54 +59,30 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     super.dispose();
   }
 
-  void _createMarkers(List<BusStop> busStops) {
-    final Map<String, Marker> markers = {};
+  Future<void> _createMarkers(List<BusStop> busStops) async {
+    final Set<Marker> markers = {};
 
     for (var busStop in busStops) {
-      markers[busStop.id] = Marker(
-        point: LatLng(busStop.latitude, busStop.longitude),
-        width: AppDimensions.markerSize,
-        height: AppDimensions.markerSize,
-        child: GestureDetector(
+      markers.add(
+        Marker(
+          markerId: MarkerId(busStop.id),
+          position: LatLng(busStop.latitude, busStop.longitude),
+          icon:
+          // BitmapDescriptor.defaultMarker,
+          await BitmapDescriptor.fromAssetImage(
+            const ImageConfiguration(),
+            IconsDir.busStop,
+          ),
+          infoWindow: InfoWindow(
+            title: busStop.name,
+            snippet: 'Tap to see bus schedules',
+          ),
           onTap: () {
             HapticFeedback.lightImpact();
             ref.read(busScheduleProvider.notifier).selectBusStop(busStop);
             _animateToStop(busStop);
             _mapFadeController.forward();
           },
-          child: AnimatedBuilder(
-            animation: _markerAnimController,
-            builder: (context, child) {
-              final double pulseValue = _markerAnimController.value;
-
-              return Container(
-                width: AppDimensions.markerCircleSize + (pulseValue * 4),
-                height: AppDimensions.markerCircleSize + (pulseValue * 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: AppDimensions.strokeWidthMedium,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryWithOpacity(
-                        0.3 + (pulseValue * 0.2),
-                      ),
-                      blurRadius: 8 + (pulseValue * 8),
-                      spreadRadius: 2 + (pulseValue * 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.directions_bus,
-                  color: Colors.white,
-                  size: AppDimensions.iconSizeSmall,
-                ),
-              );
-            },
-          ),
         ),
       );
     }
@@ -117,9 +93,13 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
   }
 
   void _animateToStop(BusStop busStop) {
-    _mapController.move(
-      LatLng(busStop.latitude, busStop.longitude),
-      AppDimensions.mapDetailedZoom,
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(busStop.latitude, busStop.longitude),
+          zoom: AppDimensions.mapDetailedZoom,
+        ),
+      ),
     );
   }
 
@@ -139,7 +119,10 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     if (status == BusScheduleStateStatus.loaded &&
         _markers.isEmpty &&
         busStops.isNotEmpty) {
-      _createMarkers(busStops);
+      Future.sync(() async {
+        // Create markers for bus stops
+        await _createMarkers(busStops);
+      });
     }
 
     return Scaffold(
@@ -148,25 +131,20 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
           // Map as hero area
           SizedBox(
             height: MediaQuery.of(context).size.height,
-            child: FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _initialPosition,
-                initialZoom: AppDimensions.mapInitialZoom,
+            child: PlatformMap(
+              initialCameraPosition: CameraPosition(
+                target: _initialPosition,
+                zoom: AppDimensions.mapInitialZoom,
               ),
-              children: [
-                // Base map layer (OpenStreetMap)
-                TileLayer(
-                  urlTemplate:
-                      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  subdomains: const ['a', 'b', 'c'],
-                  userAgentPackageName: 'com.example.busnow',
-                  tileBuilder: isDarkMode ? darkModeTileBuilder : null,
-                ),
-
-                // Bus stop markers
-                MarkerLayer(markers: _markers.values.toList()),
-              ],
+              mapType: isDarkMode ? MapType.normal : MapType.normal,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              compassEnabled: true,
+              markers: _markers,
+              // Apply custom map styles based on theme
+              onMapCreated: (controller) {
+                _mapController = controller;
+              },
             ),
           ),
 
@@ -343,9 +321,13 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
             child: FloatingActionButton(
               onPressed: () {
                 HapticFeedback.selectionClick();
-                _mapController.move(
-                  _initialPosition,
-                  AppDimensions.mapInitialZoom,
+                _mapController?.animateCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(
+                      target: _initialPosition,
+                      zoom: AppDimensions.mapInitialZoom,
+                    ),
+                  ),
                 );
               },
               backgroundColor: theme.colorScheme.primary,
@@ -354,24 +336,6 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
           ),
         ],
       ),
-    );
-  }
-
-  // Custom tile builder for dark mode
-  Widget darkModeTileBuilder(
-    BuildContext context,
-    Widget tileWidget,
-    TileImage tile,
-  ) {
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix([
-        // Apply dark mode filter
-        0.2126, 0.7152, 0.0722, 0, -100, // Red channel
-        0.2126, 0.7152, 0.0722, 0, -100, // Green channel
-        0.2126, 0.7152, 0.0722, 0, -100, // Blue channel
-        0, 0, 0, 1, 0, // Alpha channel
-      ]),
-      child: tileWidget,
     );
   }
 

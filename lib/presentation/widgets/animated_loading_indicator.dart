@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:busnow/core/constants/dimensions-file.dart';
+import 'package:busnow/core/constants/dimensions.dart';
 import 'package:flutter/material.dart';
 
 /// An animated loading indicator for the app
