@@ -107,7 +107,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
       final center = _currentMapCenter;
       
       // Define search radius (approximately 50 meters)
-      const double detectionRadiusInDegrees = 0.0005;
+      const double detectionRadiusInDegrees = 0.005;
       
       // Check if center is near any bus stop
       for (final busStop in busStops) {
