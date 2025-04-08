@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../domain/models/bus_stop_model.dart';
 import '../providers/bus_providers.dart';
@@ -35,11 +36,16 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
   bool _isCursorDetectionActive = true;
   
   // Track map position and state
-  LatLng _currentMapCenter = _initialPosition;
+  LatLng _currentMapCenter = const LatLng(0, 0); // Default, will be updated with user location
   double _currentZoom = AppDimensions.mapInitialZoom;
 
-  // Default map position and zoom
-  static const LatLng _initialPosition = LatLng(37.7749, -122.4194);
+  // Default map position as fallback (only used if location permission denied)
+  static const LatLng _defaultPosition = LatLng(37.7749, -122.4194);
+
+  // For tracking user location permissions status
+  bool _locationPermissionChecked = false;
+  LocationPermission? _locationPermission;
+  LatLng? _userLocation;
 
   // Fixed size for bottom sheet (percentage of screen height)
   final double _bottomSheetHeightRatio = 0.4; // 40% of screen height
@@ -53,6 +59,9 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
       duration: const Duration(milliseconds: AppDimensions.animDurationShort),
     );
 
+    // Check location permissions when the app starts
+    _checkLocationPermission();
+
     // Load bus stop data after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(busScheduleProvider.notifier).loadBusStops();
@@ -63,6 +72,74 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
   void dispose() {
     _mapFadeController.dispose();
     super.dispose();
+  }
+
+  /// Check location permission and get initial position
+  Future<void> _checkLocationPermission() async {
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() {
+          _locationPermissionChecked = true;
+          _locationPermission = LocationPermission.denied;
+        });
+        return;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      
+      if (permission == LocationPermission.denied) {
+        // Request permission
+        permission = await Geolocator.requestPermission();
+      }
+      
+      setState(() {
+        _locationPermissionChecked = true;
+        _locationPermission = permission;
+      });
+      
+      // If we have permission, get the user's location
+      if (permission == LocationPermission.always || 
+          permission == LocationPermission.whileInUse) {
+        _getUserLocation();
+      }
+    } catch (e) {
+      print('Error checking location permission: $e');
+      setState(() {
+        _locationPermissionChecked = true;
+        _locationPermission = LocationPermission.denied;
+      });
+    }
+  }
+
+  /// Get user's current location
+  Future<void> _getUserLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      
+      setState(() {
+        _userLocation = LatLng(position.latitude, position.longitude);
+        _currentMapCenter = _userLocation!;
+      });
+      
+      // If map controller is already initialized, move to user location
+      if (_mapController != null && _userLocation != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: _userLocation!,
+              zoom: AppDimensions.mapInitialZoom,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error getting user location: $e');
+    }
   }
 
   // Handle marker tap with bus stop selection
@@ -155,6 +232,12 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     final double bottomSheetHeight = screenSize.height * _bottomSheetHeightRatio;
     final double mapHeight = screenSize.height - bottomSheetHeight;
 
+    // Determine the initial camera position based on user location or default
+    final initialCameraPosition = CameraPosition(
+      target: _userLocation ?? _defaultPosition,
+      zoom: AppDimensions.mapInitialZoom,
+    );
+
     // Create markers when bus stops are loaded
     if (status == BusScheduleStateStatus.loaded &&
         _markers.isEmpty &&
@@ -184,10 +267,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
               children: [
                 // The map view
                 PlatformMap(
-                  initialCameraPosition: CameraPosition(
-                    target: _initialPosition,
-                    zoom: AppDimensions.mapInitialZoom,
-                  ),
+                  initialCameraPosition: initialCameraPosition,
                   mapType: MapType.normal,
                   myLocationEnabled: true,
                   myLocationButtonEnabled: false,
@@ -197,6 +277,18 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
                     setState(() {
                       _mapController = controller;
                     });
+                    
+                    // If we already have user location, move the camera there
+                    if (_userLocation != null) {
+                      controller.animateCamera(
+                        CameraUpdate.newCameraPosition(
+                          CameraPosition(
+                            target: _userLocation!,
+                            zoom: AppDimensions.mapInitialZoom,
+                          ),
+                        ),
+                      );
+                    }
                   },
                   onCameraMove: (CameraPosition position) {
                     _isMapMoving = true;
@@ -244,8 +336,8 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
                   bottom: AppDimensions.spacingExtraLarge,
                   child: MapLocationButton(
                     mapController: _mapController,
-                    initialPosition: _initialPosition,
-                    initialZoom: AppDimensions.mapInitialZoom,
+                    initialPosition: _userLocation ?? _defaultPosition,
+                    initialZoom: AppDimensions.mapDetailedZoom,
                     isBottomSheetOpen: false,
                   ),
                 ),

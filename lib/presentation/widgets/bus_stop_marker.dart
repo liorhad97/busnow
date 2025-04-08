@@ -1,24 +1,24 @@
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 
-/// A customizable marker for bus stops on the map
+/// A modern, visually attractive marker for bus stops on the map
 ///
 /// Features:
-/// - Pulsing animation effect for visibility
-/// - Shadow effects for depth
+/// - Smooth pulsing animation with gradient effects
+/// - Elegant shadow effects for depth and emphasis
 /// - Platform-independent marker implementation
-/// - Configurable appearance
+/// - Highly configurable appearance with modern design
+/// - Tactile visual feedback for selected state
 class BusStopMarker extends StatelessWidget {
   final String busStopName;
   final Animation<double> pulseAnimation;
   final bool isSelected;
   final Color? color;
+  final bool showLabel;
 
   const BusStopMarker({
     Key? key,
@@ -26,6 +26,7 @@ class BusStopMarker extends StatelessWidget {
     required this.pulseAnimation,
     this.isSelected = false,
     this.color,
+    this.showLabel = false,
   }) : super(key: key);
 
   @override
@@ -34,20 +35,42 @@ class BusStopMarker extends StatelessWidget {
     final double pulseValue = pulseAnimation.value;
     
     return Container(
-      width: 60,
-      height: 60,
+      width: 70,
+      height: 70,
       alignment: Alignment.center,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Pulsing background
+          // Outer pulsing ring effect
           if (isSelected)
             AnimatedBuilder(
               animation: pulseAnimation,
               builder: (context, _) {
                 return Container(
-                  width: 32 + (pulseValue * 16),
-                  height: 32 + (pulseValue * 16),
+                  width: 38 + (pulseValue * 20),
+                  height: 38 + (pulseValue * 20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        markerColor.withOpacity(0.4 - (pulseValue * 0.3)),
+                        markerColor.withOpacity(0.0),
+                      ],
+                      stops: const [0.7, 1.0],
+                    ),
+                  ),
+                );
+              },
+            ),
+          
+          // Inner pulse for extra dimension
+          if (isSelected)
+            AnimatedBuilder(
+              animation: pulseAnimation,
+              builder: (context, _) {
+                return Container(
+                  width: 34 + (pulseValue * 10),
+                  height: 34 + (pulseValue * 10),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: markerColor.withOpacity(0.2 - (pulseValue * 0.15)),
@@ -56,11 +79,11 @@ class BusStopMarker extends StatelessWidget {
               },
             ),
           
-          // Main marker
+          // Main marker with enhanced design
           TweenAnimationBuilder<double>(
             tween: Tween<double>(
               begin: isSelected ? 0.8 : 1.0,
-              end: isSelected ? 1.0 : 1.0,
+              end: isSelected ? 1.1 : 1.0,
             ),
             duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
             curve: Curves.elasticOut,
@@ -68,16 +91,28 @@ class BusStopMarker extends StatelessWidget {
               return Transform.scale(
                 scale: scale,
                 child: Container(
-                  width: 24,
-                  height: 24,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
-                    color: markerColor,
+                    gradient: RadialGradient(
+                      colors: [
+                        markerColor,
+                        markerColor.withBlue((markerColor.blue + 20).clamp(0, 255)),
+                      ],
+                      center: const Alignment(0.2, 0.2),
+                    ),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: Colors.white,
-                      width: 2,
+                      width: 2.5,
                     ),
                     boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadowMedium,
+                        blurRadius: 4,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 2),
+                      ),
                       BoxShadow(
                         color: markerColor.withOpacity(0.4),
                         blurRadius: 8,
@@ -88,12 +123,57 @@ class BusStopMarker extends StatelessWidget {
                   child: const Icon(
                     Icons.directions_bus,
                     color: Colors.white,
-                    size: 14,
+                    size: 15,
                   ),
                 ),
               );
             },
           ),
+          
+          // Optional label (when showLabel is true)
+          if (showLabel && isSelected)
+            Positioned(
+              bottom: 0,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) {
+                  return Transform.translate(
+                    offset: Offset(0, 12 * (1 - value)),
+                    child: Opacity(
+                      opacity: value,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.spacingSmall,
+                          vertical: AppDimensions.spacingExtraSmall / 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.shadowLight,
+                              blurRadius: 4,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          busStopName,
+                          style: TextStyle(
+                            color: markerColor.withBlue((markerColor.blue - 20).clamp(0, 255)),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );
