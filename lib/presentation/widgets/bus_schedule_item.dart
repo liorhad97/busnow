@@ -28,7 +28,7 @@ class _BusScheduleItemState extends State<BusScheduleItem>
     super.initState();
     _blinkController = AnimationController(
       vsync: this,
-      duration: const Duration(
+      duration: Duration(
         milliseconds: AppDimensions.animDurationExtraLong,
       ),
     );

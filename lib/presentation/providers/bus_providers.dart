@@ -126,6 +126,10 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
     }
   }
 
+  void openBottomSheet() {
+    state = state.copyWith(isBottomSheetOpen: true);
+  }
+
   void closeBottomSheet() {
     state = state.copyWith(isBottomSheetOpen: false);
   }
