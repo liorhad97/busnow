@@ -41,126 +41,67 @@ lib/
 │   └── mixins/                 # Reusable widget behavior mixins
 ```
 
-### 2. Files to Refactor
+## Progress So Far
 
-#### Large Files (Priority 1)
-
-1. **route_details_bottom_sheet.dart** (37,230 bytes)
-   - Extract painters to decorations folder
-   - Extract animations to animation utilities
-   - Break down into smaller components
-
-2. **map_bottom_sheet.dart** (33,635 bytes)
-   - Extract painters and decorative elements
-   - Break down into dedicated component files
-   - Create reusable patterns for animations
-
-3. **bus_map_screen.dart** (30,211 bytes)
-   - Move map control logic to mixins
-   - Extract bus stop detection to utilities
-   - Break UI into smaller components
-
-4. **bus_schedule_card.dart** (29,407 bytes)
-   - Extract card components
-   - Create reusable animation patterns
-   - Separate UI from logic
-
-5. **enhanced_bus_schedule_item.dart** (27,825 bytes)
-   - Break down into smaller components
-   - Extract animations and decorations
-
-#### Medium-Sized Files (Priority 2)
-
-6. **animated_time_display.dart** (9,265 bytes)
-   - Extract animation logic
-   - Create reusable components
-
-7. **bus_stop_marker.dart** (9,724 bytes)
-   - Move to map/markers folder
-   - Extract animation logic
-
-8. **animated_loading_indicator.dart** (8,330 bytes)
-   - Move to animations folder
-   - Extract animation styles into separate files
-
-9. **bus_schedule_item.dart** (5,898 bytes)
-   - Move to bus folder
-   - Extract components
-
-10. **bus_refresh_button.dart** (4,820 bytes)
-    - Move to common folder
-    - Simplify and make more reusable
-
-#### Smaller Files (Priority 3)
-
-11. **map_center_cursor.dart** (3,839 bytes)
-12. **map_location_button.dart** (3,591 bytes)
-13. **animated_map_controls.dart** (3,083 bytes)
-14. **map_overlay_gradient.dart** (2,912 bytes)
-15. **bus_schedule_list.dart** (2,195 bytes)
-
-### 3. Component Extraction Strategy
-
-#### Bottom Sheet Components
-
-- Extract pull handles to reusable components
-- Create standard sheet headers with animations
-- Extract background decorations and effects
-- Create reusable empty and loading states
-
-#### Bus Components
-
-- Create standard bus info cards
-- Extract schedule list views and items
-- Create route visualization components
-- Extract time display widgets
-
-#### Map Components
-
-- Extract map controls and buttons
-- Create reusable marker components
-- Extract map overlay and gradients
-- Create location permission handlers
+### 1. Completed Components
 
 #### Animation Utilities
+- Created `AnimationTransitions` utility class with reusable animation patterns
 
-- Create fade/slide animations
-- Extract staggered list animations
-- Create scale and pulse animations
-- Extract custom painter animations
+#### Bus Components
+- Extracted `BusNumberCircle` from bus_schedule_card.dart
+- Extracted `BusStatusIndicator` from bus_schedule_card.dart
+- Created `BusStatusCalculator` utility class
+- Extracted `RouteVisualization` from bus_schedule_card.dart
+- Extracted `BusActionButtons` from bus_schedule_card.dart
+- Extracted `BusTimeInfo` from bus_schedule_card.dart
+- Extracted `BusExpandedContent` from bus_schedule_card.dart
+- Extracted `SimpleBusCircle` from bus_schedule_item.dart
+- Extracted `BlinkingTimeDisplay` from bus_schedule_item.dart
+- Refactored `BusScheduleItem` to use the new components
+- Refactored `BusScheduleCard` to use the new components
 
-### 4. Implementation Plan
+#### Map Components
+- Extracted `GradientOverlayPainter` from map_overlay_gradient.dart
+- Extracted `PulsingCursorDot` from map_center_cursor.dart
+- Extracted `MapControlButton` from animated_map_controls.dart
+- Refactored `MapCenterCursor` to use extracted components
+- Refactored `MapControlsPanel` (renamed from AnimatedMapControls)
+- Refactored `MapOverlayGradient` to use extracted painter
 
-#### Phase 1: Foundation
+#### Animation Components
+- Extracted `AnimationType` enum to a separate file
+- Extracted `LoadingIndicatorPainter` from animated_loading_indicator.dart
+- Extracted `InlineLoadingIndicator` to a separate file
+- Refactored `AnimatedLoadingIndicator` to use the extracted painter
 
-1. Set up folder structure
-2. Create animation and UI utilities
-3. Extract common components (buttons, headers, etc.)
+### 2. Next Steps
 
-#### Phase 2: Major Components
+1. **Refactor Bottom Sheets**:
+   - Extract components from `route_details_bottom_sheet.dart`
+   - Complete refactoring of `map_bottom_sheet.dart`
 
-4. Refactor bottom sheet implementations
-5. Break down bus schedule cards and items
-6. Extract map-related components and controls
+2. **Refactor BusMapScreen**:
+   - Create mixins for map control and bottom sheet interaction
+   - Extract map-related utilities
+   - Break down the large build method
 
-#### Phase 3: Screens
+3. **Update Imports**:
+   - Update imports throughout the app to use the new components
+   - Remove old files once refactoring is complete
 
-7. Refactor the main screen with extracted components
-8. Update imports and dependencies
-9. Cleanup and documentation
+4. **Add Tests**:
+   - Add unit tests for the extracted components
+   - Ensure all functionality works as expected
 
 ## Benefits
 
-- **Improved Maintainability**: Smaller files with clear responsibilities are easier to understand and maintain
-- **Better Code Reuse**: Common components can be reused throughout the app
-- **Enhanced Performance**: More focused rebuilds lead to better performance
-- **Easier Testing**: Isolated components are easier to test
-- **Better Collaboration**: Team members can work on different components without conflicts
+- **Smaller Files**: Files are now more focused and easier to understand
+- **Better Reusability**: Components can be reused throughout the app
+- **Improved Maintainability**: Components have clear responsibilities
+- **Enhanced Readability**: Code is now more organized and better documented
+- **Future Development**: New features can be added more easily
 
-## Success Criteria
+## Conclusion
 
-- No file should be larger than 300-400 lines of code
-- Each class/component should have a single responsibility
-- Common patterns should be extracted and reused
-- Code should be well-documented with clear purpose
-- Functionality should remain identical to the original implementation
+This refactoring effort is ongoing but has already made significant improvements to the codebase. The next phase will focus on completing the extraction of components from the remaining large files and ensuring all parts of the app work together seamlessly.
