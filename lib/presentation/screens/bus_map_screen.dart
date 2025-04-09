@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/direction/direction_aware_builder.dart';
 import 'package:busnow/domain/models/bus_stop_model.dart';
 import 'package:busnow/presentation/mixins/bottom_sheet_controller_mixin.dart';
 import 'package:busnow/presentation/mixins/map_controller_mixin.dart';
@@ -12,6 +13,7 @@ import 'package:busnow/presentation/utils/map_markers_manager.dart';
 import 'package:busnow/presentation/screens/bus_map/map_view.dart';
 import 'package:busnow/presentation/screens/bus_map/bottom_sheet_view.dart';
 import 'package:busnow/presentation/screens/bus_map/map_controls_view.dart';
+import 'package:busnow/presentation/widgets/settings/settings_button.dart';
 
 /// The main map screen where users can see bus stops and their schedules
 ///
@@ -391,6 +393,19 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
               onCollapseBottomSheet: collapseBottomSheet,
               onDragUpdate: handleBottomSheetDrag,
               onDragEnd: handleBottomSheetDragEnd,
+            ),
+            
+            // Settings button in the top corner (using DirectionAwareBuilder to handle LTR/RTL positioning)
+            DirectionAwareBuilder(
+              builder: (context, isLtr) {
+                return Positioned(
+                  top: MediaQuery.of(context).padding.top + AppDimensions.spacingMedium,
+                  // Position based on direction (left for LTR, right for RTL)
+                  left: isLtr ? AppDimensions.spacingMedium : null,
+                  right: isLtr ? null : AppDimensions.spacingMedium,
+                  child: const SettingsButton(),
+                );
+              },
             ),
           ],
         ),
