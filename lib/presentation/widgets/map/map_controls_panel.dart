@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/l10n/app_localizations.dart';
 import 'package:busnow/presentation/widgets/map/map_control_button.dart';
 
 /// A panel of map control buttons for zoom and location functionality
@@ -30,6 +31,8 @@ class MapControlsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -49,7 +52,7 @@ class MapControlsPanel extends StatelessWidget {
           MapControlButton(
             icon: Icons.add,
             onPressed: onZoomIn,
-            tooltip: 'Zoom in',
+            tooltip: l10n.zoomIn,
           ),
           
           // Divider
@@ -63,7 +66,7 @@ class MapControlsPanel extends StatelessWidget {
           MapControlButton(
             icon: Icons.remove,
             onPressed: onZoomOut,
-            tooltip: 'Zoom out',
+            tooltip: l10n.zoomOut,
           ),
           
           // Divider
@@ -80,7 +83,7 @@ class MapControlsPanel extends StatelessWidget {
               HapticFeedback.selectionClick();
               onLocate();
             },
-            tooltip: 'My location',
+            tooltip: l10n.myLocation,
             useAccentColor: true,
           ),
         ],
