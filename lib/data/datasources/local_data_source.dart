@@ -26,6 +26,12 @@ class BusScheduleLocalDataSource {
       longitude: -122.4074,
     ),
     const BusStop(
+      id: 'stop6',
+      name: 'Square',
+      latitude: 37.7879,
+      longitude: -122.4075,
+    ),
+    const BusStop(
       id: 'stop4',
       name: 'Fisherman\'s Wharf',
       latitude: 37.8100,

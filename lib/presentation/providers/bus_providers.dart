@@ -21,6 +21,7 @@ class BusScheduleState {
   final List<BusStop> busStops;
   final List<BusSchedule> busSchedules;
   final BusStop? selectedBusStop;
+  final List<BusStop> nearbyBusStops; // Added to track multiple nearby stops
   final bool isBottomSheetOpen;
   final String? errorMessage;
 
@@ -29,6 +30,7 @@ class BusScheduleState {
     this.busStops = const [],
     this.busSchedules = const [],
     this.selectedBusStop,
+    this.nearbyBusStops = const [], // Initialize as empty list
     this.isBottomSheetOpen = false,
     this.errorMessage,
   });
@@ -38,6 +40,7 @@ class BusScheduleState {
     List<BusStop>? busStops,
     List<BusSchedule>? busSchedules,
     BusStop? selectedBusStop,
+    List<BusStop>? nearbyBusStops,
     bool? isBottomSheetOpen,
     String? errorMessage,
     bool clearSelectedBusStop = false,
@@ -51,6 +54,7 @@ class BusScheduleState {
           clearSelectedBusStop
               ? null
               : (selectedBusStop ?? this.selectedBusStop),
+      nearbyBusStops: nearbyBusStops ?? this.nearbyBusStops,
       isBottomSheetOpen: isBottomSheetOpen ?? this.isBottomSheetOpen,
       errorMessage:
           clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
@@ -102,6 +106,47 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
     await loadBusSchedulesForStop(busStop.id);
   }
 
+  // New method to select multiple nearby bus stops and load their combined schedules
+  Future<void> selectNearbyBusStops(List<BusStop> nearbyStops) async {
+    if (nearbyStops.isEmpty) return;
+
+    // Set the primary selected stop (for UI display purposes)
+    final primaryStop = nearbyStops.first;
+
+    state = state.copyWith(
+      selectedBusStop: primaryStop,
+      nearbyBusStops: nearbyStops,
+      isBottomSheetOpen: true,
+      status: BusScheduleStateStatus.loading,
+    );
+
+    try {
+      // Load and combine schedules for all nearby stops
+      List<BusSchedule> allSchedules = [];
+
+      for (final stop in nearbyStops) {
+        final schedules = await _repository.getBusSchedulesForStop(stop.id);
+        allSchedules.addAll(schedules);
+      }
+
+      // Sort all schedules by arrival time
+      allSchedules.sort(
+        (a, b) => a.arrivalTimeInMinutes.compareTo(b.arrivalTimeInMinutes),
+      );
+
+      state = state.copyWith(
+        status: BusScheduleStateStatus.loaded,
+        busSchedules: allSchedules,
+        clearErrorMessage: true,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: BusScheduleStateStatus.error,
+        errorMessage: 'Failed to load combined bus schedules: ${e.toString()}',
+      );
+    }
+  }
+
   Future<void> loadBusSchedulesForStop(String busStopId) async {
     state = state.copyWith(status: BusScheduleStateStatus.loading);
 
@@ -135,8 +180,40 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
   }
 
   Future<void> refreshBusSchedules() async {
-    if (state.selectedBusStop != null) {
+    if (state.nearbyBusStops.isNotEmpty) {
+      // If we have multiple nearby stops, refresh their combined schedules
+      await selectNearbyBusStops(state.nearbyBusStops);
+    } else if (state.selectedBusStop != null) {
+      // Otherwise just refresh the single selected stop
       await loadBusSchedulesForStop(state.selectedBusStop!.id);
+    }
+  }
+
+  // Reset the state to initial values
+  void reset() {
+    state = const BusScheduleState(
+      status: BusScheduleStateStatus.initial,
+      busStops: [],
+      busSchedules: [],
+      selectedBusStop: null,
+      nearbyBusStops: [],
+      isBottomSheetOpen: false,
+      errorMessage: null,
+    );
+  }
+
+  // Helper method to generate a title for the sheet based on nearby bus stops
+  String getSheetTitle() {
+    if (state.nearbyBusStops.isEmpty) {
+      return state.selectedBusStop?.name ?? "No Bus Stop Selected";
+    }
+
+    // Combine names of nearby bus stops
+    final stopNames = state.nearbyBusStops.map((stop) => stop.name).toList();
+    if (stopNames.length > 2) {
+      return "${stopNames[0]} + ${stopNames[1]} + ...";
+    } else {
+      return stopNames.join(" + ");
     }
   }
 }

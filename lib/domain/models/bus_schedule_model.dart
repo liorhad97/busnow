@@ -1,3 +1,5 @@
+import 'package:flutter/src/widgets/framework.dart';
+
 /// Model class representing a bus schedule
 class BusSchedule {
   final String id;
@@ -13,4 +15,14 @@ class BusSchedule {
     required this.arrivalTimeInMinutes,
     required this.destination,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'busNumber': busNumber,
+      'busStopId': busStopId,
+      'arrivalTimeInMinutes': arrivalTimeInMinutes,
+      'destination': destination,
+    };
+  }
 }

@@ -36,29 +36,29 @@ class EnhancedBottomSheet extends StatefulWidget {
   State<EnhancedBottomSheet> createState() => _EnhancedBottomSheetState();
 }
 
-class _EnhancedBottomSheetState extends State<EnhancedBottomSheet> 
+class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
     with SingleTickerProviderStateMixin {
   late ScrollController _scrollController;
   late AnimationController _contentAnimationController;
-  
+
   // Track scroll position for parallax effects
   double _scrollOffset = 0;
   bool _isScrolling = false;
-  
+
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    
+
     _contentAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
     );
-    
+
     widget.animation.addListener(_onSheetAnimationChanged);
   }
-  
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
@@ -67,13 +67,13 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
     widget.animation.removeListener(_onSheetAnimationChanged);
     super.dispose();
   }
-  
+
   void _onScroll() {
     setState(() {
       _scrollOffset = _scrollController.offset;
       _isScrolling = true;
     });
-    
+
     // Reset isScrolling flag after a delay
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
@@ -83,14 +83,22 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
       }
     });
   }
-  
+
   void _onSheetAnimationChanged() {
     // Animate content when sheet expands
-    if (widget.animation.value > 0.5 && !_contentAnimationController.isCompleted) {
+    if (widget.animation.value > 0.5 &&
+        !_contentAnimationController.isCompleted) {
       _contentAnimationController.forward();
-    } else if (widget.animation.value < 0.3 && _contentAnimationController.value > 0) {
+    } else if (widget.animation.value < 0.3 &&
+        _contentAnimationController.value > 0) {
       _contentAnimationController.reverse();
     }
+  }
+
+  // Handle closing the sheet
+  void _handleClose() {
+    HapticFeedback.lightImpact();
+    widget.onClose();
   }
 
   @override
@@ -98,130 +106,202 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     final mediaQuery = MediaQuery.of(context);
-    
+
     // Calculate dynamic blur and shadow based on animation value
     final blurAmount = lerpDouble(0, 15, widget.animation.value) ?? 0.0;
-    
-    return ClipRRect(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(
-          lerpDouble(AppDimensions.borderRadiusLarge, AppDimensions.borderRadiusMedium, widget.animation.value) ?? 
-          AppDimensions.borderRadiusLarge
-        ),
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: blurAmount, 
-          sigmaY: blurAmount,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withOpacity(0.97),
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(
-                lerpDouble(AppDimensions.borderRadiusLarge, AppDimensions.borderRadiusMedium, widget.animation.value) ?? 
-                AppDimensions.borderRadiusLarge
-              ),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.shadowMedium,
-                blurRadius: lerpDouble(10, 20, widget.animation.value) ?? 10.0,
-                spreadRadius: lerpDouble(1, 5, widget.animation.value) ?? 1.0,
-                offset: Offset(0, lerpDouble(-2, -5, widget.animation.value) ?? -2.0),
-              ),
-            ],
+
+    return GestureDetector(
+      // Add a swipe down gesture to close the sheet
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
+          _handleClose();
+        }
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(
+            lerpDouble(
+                  AppDimensions.borderRadiusLarge,
+                  AppDimensions.borderRadiusMedium,
+                  widget.animation.value,
+                ) ??
+                AppDimensions.borderRadiusLarge,
           ),
-          child: Stack(
-            children: [
-              // Decorative background patterns
-              Positioned.fill(
-                child: Opacity(
-                  opacity: widget.animation.value * 0.15,
-                  child: CustomPaint(
-                    painter: _DecorativeBackgroundPainter(
-                      primaryColor: AppColors.primary,
-                      secondaryColor: isDarkMode ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      animationValue: widget.animation.value,
-                      isDarkMode: isDarkMode,
-                    ),
-                  ),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withOpacity(0.97),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(
+                  lerpDouble(
+                        AppDimensions.borderRadiusLarge,
+                        AppDimensions.borderRadiusMedium,
+                        widget.animation.value,
+                      ) ??
+                      AppDimensions.borderRadiusLarge,
                 ),
               ),
-              
-              // Animated gradient background for extra flavor
-              Positioned.fill(
-                child: AnimatedOpacity(
-                  opacity: widget.animation.value * 0.2,
-                  duration: const Duration(milliseconds: AppDimensions.animDurationShort),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment(
-                          0.5 + 0.5 * math.sin(DateTime.now().millisecondsSinceEpoch / 10000),
-                          -0.2 + 0.2 * math.cos(DateTime.now().millisecondsSinceEpoch / 8000),
-                        ),
-                        colors: [
-                          AppColors.primary.withOpacity(0.15),
-                          AppColors.primaryLight.withOpacity(0.05),
-                          Colors.transparent,
-                        ],
-                        radius: mediaQuery.size.width * 0.8,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadowMedium,
+                  blurRadius:
+                      lerpDouble(10, 20, widget.animation.value) ?? 10.0,
+                  spreadRadius: lerpDouble(1, 5, widget.animation.value) ?? 1.0,
+                  offset: Offset(
+                    0,
+                    lerpDouble(-2, -5, widget.animation.value) ?? -2.0,
+                  ),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Decorative background patterns
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: widget.animation.value * 0.15,
+                    child: CustomPaint(
+                      painter: _DecorativeBackgroundPainter(
+                        primaryColor: AppColors.primary,
+                        secondaryColor:
+                            isDarkMode
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                        animationValue: widget.animation.value,
+                        isDarkMode: isDarkMode,
                       ),
                     ),
                   ),
                 ),
-              ),
-              
-              // Main content
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Pull handle with animated indicator
-                  _buildPullHandle(theme),
-                  
-                  // Expanded content area with animations
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
-                      child: widget.selectedBusStop == null ? 
-                        _buildEmptyState(theme) :
-                        _buildContentArea(theme),
+
+                // Animated gradient background for extra flavor
+                Positioned.fill(
+                  child: AnimatedOpacity(
+                    opacity: widget.animation.value * 0.2,
+                    duration: const Duration(
+                      milliseconds: AppDimensions.animDurationShort,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(
+                            0.5 +
+                                0.5 *
+                                    math.sin(
+                                      DateTime.now().millisecondsSinceEpoch /
+                                          10000,
+                                    ),
+                            -0.2 +
+                                0.2 *
+                                    math.cos(
+                                      DateTime.now().millisecondsSinceEpoch /
+                                          8000,
+                                    ),
+                          ),
+                          colors: [
+                            AppColors.primary.withOpacity(0.15),
+                            AppColors.primaryLight.withOpacity(0.05),
+                            Colors.transparent,
+                          ],
+                          radius: mediaQuery.size.width * 0.8,
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
-              
-              // Shine effect that moves with scrolling and animations
-              if (widget.animation.value > 0.5)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    ignoring: true,
-                    child: AnimatedOpacity(
-                      opacity: _isScrolling ? 0.3 : 0,
-                      duration: const Duration(milliseconds: AppDimensions.animDurationShort),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.white.withOpacity(0.0),
-                              Colors.white.withOpacity(0.1),
-                              Colors.white.withOpacity(0.0),
-                            ],
-                            stops: [
-                              0.0, 
-                              0.5 + (_scrollOffset / 1000).clamp(0.0, 0.5), 
-                              1.0
-                            ],
+                ),
+
+                // Main content
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Pull handle with animated indicator and close functionality
+                    _buildPullHandle(theme),
+
+                    // Expanded content area with animations
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(
+                          milliseconds: AppDimensions.animDurationMedium,
+                        ),
+                        child:
+                            widget.selectedBusStop == null
+                                ? _buildEmptyState(theme)
+                                : _buildContentArea(theme),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Shine effect that moves with scrolling and animations
+                if (widget.animation.value > 0.5)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: true,
+                      child: AnimatedOpacity(
+                        opacity: _isScrolling ? 0.3 : 0,
+                        duration: const Duration(
+                          milliseconds: AppDimensions.animDurationShort,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.white.withOpacity(0.0),
+                                Colors.white.withOpacity(0.1),
+                                Colors.white.withOpacity(0.0),
+                              ],
+                              stops: [
+                                0.0,
+                                0.5 + (_scrollOffset / 1000).clamp(0.0, 0.5),
+                                1.0,
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
+
+                // Close button in the top right when fully expanded
+                if (widget.animation.value > 0.8)
+                  Positioned(
+                    top: AppDimensions.spacingMedium,
+                    right: AppDimensions.spacingMedium,
+                    child: AnimatedOpacity(
+                      opacity:
+                          (widget.animation.value - 0.8) *
+                          5, // Fade in as animation progresses past 0.8
+                      duration: const Duration(
+                        milliseconds: AppDimensions.animDurationShort,
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _handleClose,
+                          customBorder: const CircleBorder(),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceVariant
+                                  .withOpacity(0.7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: AppDimensions.iconSizeSmall,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -230,71 +310,101 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
 
   // Beautifully animated pull handle
   Widget _buildPullHandle(ThemeData theme) {
-    return SizedBox(
-      height: 40,
-      child: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Shadow layer
-            Container(
-              width: AppDimensions.pullHandleWidth + 2,
-              height: AppDimensions.pullHandleHeight + 2,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppDimensions.borderRadiusCircular),
-              ),
-            ),
-            
-            // Main handle
-            TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 1.0, end: widget.animation.value < 0.5 ? 1.0 : 1.2),
-              duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
-              curve: Curves.easeInOut,
-              builder: (context, scale, child) {
-                return Transform.scale(
-                  scale: scale, 
-                  child: Container(
-                    width: AppDimensions.pullHandleWidth,
-                    height: AppDimensions.pullHandleHeight,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          theme.colorScheme.onSurface.withOpacity(0.2),
-                          theme.colorScheme.onSurface.withOpacity(0.3),
-                          theme.colorScheme.onSurface.withOpacity(0.2),
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
-                      ),
-                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusCircular),
-                    ),
+    return GestureDetector(
+      onTap:
+          widget.animation.value >= 0.9
+              ? _handleClose
+              : null, // Tap on handle to close when expanded
+      child: SizedBox(
+        height: 40,
+        child: Center(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Shadow layer
+              Container(
+                width: AppDimensions.pullHandleWidth + 2,
+                height: AppDimensions.pullHandleHeight + 2,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadiusCircular,
                   ),
-                );
-              },
-            ),
-            
-            // Animated dot indicators for drag up
-            if (widget.animation.value < 0.5)
-              Positioned(
-                top: -14,
-                child: Column(
-                  children: [
-                    _buildPulsingDot(0),
-                    SizedBox(height: 3),
-                    _buildPulsingDot(100),
-                    SizedBox(height: 3),
-                    _buildPulsingDot(200),
-                  ],
                 ),
               ),
-          ],
+
+              // Main handle
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(
+                  begin: 1.0,
+                  end: widget.animation.value < 0.5 ? 1.0 : 1.2,
+                ),
+                duration: const Duration(
+                  milliseconds: AppDimensions.animDurationMedium,
+                ),
+                curve: Curves.easeInOut,
+                builder: (context, scale, child) {
+                  return Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      width: AppDimensions.pullHandleWidth,
+                      height: AppDimensions.pullHandleHeight,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            theme.colorScheme.onSurface.withOpacity(0.2),
+                            theme.colorScheme.onSurface.withOpacity(0.3),
+                            theme.colorScheme.onSurface.withOpacity(0.2),
+                          ],
+                          stops: const [0.0, 0.5, 1.0],
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          AppDimensions.borderRadiusCircular,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Animated dot indicators for drag up when collapsed
+              if (widget.animation.value < 0.5)
+                Positioned(
+                  top: -14,
+                  child: Column(
+                    children: [
+                      _buildPulsingDot(0),
+                      SizedBox(height: 3),
+                      _buildPulsingDot(100),
+                      SizedBox(height: 3),
+                      _buildPulsingDot(200),
+                    ],
+                  ),
+                ),
+
+              // Animated dot indicators for drag down when expanded
+              if (widget.animation.value > 0.9)
+                Positioned(
+                  bottom: -14,
+                  child: Column(
+                    children: [
+                      _buildPulsingDot(200),
+                      SizedBox(height: 3),
+                      _buildPulsingDot(100),
+                      SizedBox(height: 3),
+                      _buildPulsingDot(0),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
-  
+
   Widget _buildPulsingDot(int delayMillis) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0.0, end: 1.0),
@@ -322,7 +432,7 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
     if (widget.selectedBusStop == null) {
       return const SizedBox.shrink();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -367,9 +477,9 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                     size: AppDimensions.iconSizeMedium,
                   ),
                 ),
-                
+
                 const SizedBox(width: AppDimensions.spacingMedium),
-                
+
                 // Bus stop name and info with layout animation
                 Expanded(
                   child: Column(
@@ -390,7 +500,9 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(AppDimensions.borderRadiusCircular),
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.borderRadiusCircular,
+                              ),
                             ),
                             child: Text(
                               "${widget.busSchedules.length} Buses",
@@ -400,21 +512,23 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(width: AppDimensions.spacingSmall),
-                          
+
                           Icon(
                             Icons.access_time_rounded,
                             size: 12,
-                            color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                            color: theme.textTheme.bodySmall?.color
+                                ?.withOpacity(0.7),
                           ),
-                          
+
                           const SizedBox(width: 2),
-                          
+
                           Text(
                             "Live Updates",
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withOpacity(0.7),
                             ),
                           ),
                         ],
@@ -422,7 +536,7 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                     ],
                   ),
                 ),
-                
+
                 // Refresh button with haptic feedback
                 BusRefreshButton(
                   onPressed: () {
@@ -439,16 +553,17 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
 
         // Bus schedule list with loading state and empty state handling
         Expanded(
-          child: widget.status == BusScheduleStateStatus.loading
-            ? Center(
-                child: AnimatedLoadingIndicator(
-                  type: AnimationType.pulse,
-                  message: "Finding buses...",
-                ),
-              )
-            : widget.busSchedules.isEmpty
-                ? _buildNoSchedulesState(theme)
-                : _buildScheduleList(theme),
+          child:
+              widget.status == BusScheduleStateStatus.loading
+                  ? Center(
+                    child: AnimatedLoadingIndicator(
+                      type: AnimationType.pulse,
+                      message: "Finding buses...",
+                    ),
+                  )
+                  : widget.busSchedules.isEmpty
+                  ? _buildNoSchedulesState(theme)
+                  : _buildScheduleList(theme),
         ),
       ],
     );
@@ -476,8 +591,9 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
         itemCount: widget.busSchedules.length,
         itemBuilder: (context, index) {
           final schedule = widget.busSchedules[index];
-          final isEarliest = 
-              widget.earliestTimes[schedule.busNumber] == schedule.arrivalTimeInMinutes;
+          final isEarliest =
+              widget.earliestTimes[schedule.busNumber] ==
+              schedule.arrivalTimeInMinutes;
 
           // Create a staggered animation for each item
           return TweenAnimationBuilder<double>(
@@ -489,13 +605,10 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
             builder: (context, value, child) {
               // Only animate once content animation is active
               final adjustedValue = value * _contentAnimationController.value;
-              
+
               return Transform.translate(
                 offset: Offset(0, 20 * (1 - adjustedValue)),
-                child: Opacity(
-                  opacity: adjustedValue,
-                  child: child,
-                ),
+                child: Opacity(opacity: adjustedValue, child: child),
               );
             },
             child: Padding(
@@ -542,9 +655,9 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
               );
             },
           ),
-          
+
           const SizedBox(height: AppDimensions.spacingMedium),
-          
+
           // Animated text
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0.0, end: 1.0),
@@ -572,7 +685,7 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppDimensions.spacingMedium),
         ],
       ),
@@ -618,17 +731,18 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
               );
             },
           ),
-          
+
           const SizedBox(height: AppDimensions.spacingMedium),
-          
+
           // Animated text with slightly delayed entrance
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0.0, end: 1.0),
             duration: const Duration(milliseconds: 800),
             curve: Curves.easeOutCubic,
             builder: (context, value, child) {
-              final adjustedValue = (value * _contentAnimationController.value).clamp(0.0, 1.0);
-              
+              final adjustedValue = (value * _contentAnimationController.value)
+                  .clamp(0.0, 1.0);
+
               return Opacity(
                 opacity: adjustedValue,
                 child: Transform.translate(
@@ -645,17 +759,21 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                
+
                 const SizedBox(height: AppDimensions.spacingMedium),
-                
+
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.spacingMedium,
                     vertical: AppDimensions.spacingSmall,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.secondaryContainer.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+                    color: theme.colorScheme.secondaryContainer.withOpacity(
+                      0.7,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.borderRadiusMedium,
+                    ),
                   ),
                   child: Text(
                     "Tap refresh to check again",
@@ -679,30 +797,33 @@ class _DecorativeBackgroundPainter extends CustomPainter {
   final Color secondaryColor;
   final double animationValue;
   final bool isDarkMode;
-  
+
   _DecorativeBackgroundPainter({
     required this.primaryColor,
     required this.secondaryColor,
     required this.animationValue,
     required this.isDarkMode,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     // Create a grid pattern with circles and lines
     final double spacing = 40.0;
     final int horizontalCount = (size.width / spacing).ceil() + 1;
     final int verticalCount = (size.height / spacing).ceil() + 1;
-    
+
     // Draw connecting lines first
-    final linePaint = Paint()
-      ..color = (isDarkMode ? Colors.white : Colors.black).withOpacity(0.03 * animationValue)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5;
-    
+    final linePaint =
+        Paint()
+          ..color = (isDarkMode ? Colors.white : Colors.black).withOpacity(
+            0.03 * animationValue,
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.5;
+
     // Create a path for the lines
     final path = Path();
-    
+
     // Draw dynamic curved paths for extra visual interest
     for (int i = 0; i < 5; i++) {
       final offset = i * 0.2;
@@ -710,117 +831,118 @@ class _DecorativeBackgroundPainter extends CustomPainter {
       final control1y = size.height * (0.1 + offset * 0.5);
       final control2x = size.width * (0.8 - offset);
       final control2y = size.height * (0.5 + offset * 0.3);
-      
+
       path.moveTo(0, size.height * (0.3 + offset * 0.2));
       path.cubicTo(
-        control1x, control1y,
-        control2x, control2y,
-        size.width, size.height * (0.7 - offset * 0.1),
+        control1x,
+        control1y,
+        control2x,
+        control2y,
+        size.width,
+        size.height * (0.7 - offset * 0.1),
       );
     }
-    
+
     canvas.drawPath(path, linePaint);
-    
+
     // Create another path for diagonal flowing lines
     final flowPath = Path();
-    
+
     for (int i = 0; i < 3; i++) {
       final offset = i * 0.3;
       flowPath.moveTo(size.width * offset, 0);
       flowPath.quadraticBezierTo(
-        size.width * (0.5 + offset * 0.2), 
+        size.width * (0.5 + offset * 0.2),
         size.height * (0.5 + offset * 0.1),
         size.width * (1 - offset),
         size.height,
       );
     }
-    
+
     canvas.drawPath(
-      flowPath, 
+      flowPath,
       Paint()
         ..color = primaryColor.withOpacity(0.03 * animationValue)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5,
     );
-    
+
     // Draw small dots in a grid pattern
     final dotRadius = 1.5;
-    final dotPaint = Paint()
-      ..color = secondaryColor.withOpacity(0.1 * animationValue)
-      ..style = PaintingStyle.fill;
-    
+    final dotPaint =
+        Paint()
+          ..color = secondaryColor.withOpacity(0.1 * animationValue)
+          ..style = PaintingStyle.fill;
+
     for (int x = 0; x < horizontalCount; x++) {
       for (int y = 0; y < verticalCount; y++) {
         // Skip some dots randomly for more organic look
         if ((x + y) % 3 == 0) continue;
-        
+
         final xPos = x * spacing;
         final yPos = y * spacing;
-        
-        canvas.drawCircle(
-          Offset(xPos, yPos),
-          dotRadius,
-          dotPaint,
-        );
+
+        canvas.drawCircle(Offset(xPos, yPos), dotRadius, dotPaint);
       }
     }
-    
+
     // Draw a few larger circles for accent
-    final accentPaint = Paint()
-      ..color = primaryColor.withOpacity(0.05 * animationValue)
-      ..style = PaintingStyle.fill;
-    
+    final accentPaint =
+        Paint()
+          ..color = primaryColor.withOpacity(0.05 * animationValue)
+          ..style = PaintingStyle.fill;
+
     canvas.drawCircle(
       Offset(size.width * 0.2, size.height * 0.3),
       30 * animationValue,
       accentPaint,
     );
-    
+
     canvas.drawCircle(
       Offset(size.width * 0.8, size.height * 0.7),
       40 * animationValue,
       accentPaint,
     );
-    
+
+    // Add a subtle wave
     // Add a subtle wave at the bottom
-    final wavePaint = Paint()
-      ..color = primaryColor.withOpacity(0.07 * animationValue)
-      ..style = PaintingStyle.fill;
-    
+    final wavePaint =
+        Paint()
+          ..color = primaryColor.withOpacity(0.07 * animationValue)
+          ..style = PaintingStyle.fill;
+
     final wavePath = Path();
     wavePath.moveTo(0, size.height);
-    
+
     // Create a gentle wave pattern
     final waveHeight = 40.0 * animationValue;
     final segments = 4;
     final segmentWidth = size.width / segments;
-    
+
     for (int i = 0; i <= segments; i++) {
       final x = i * segmentWidth;
       final y = size.height - (i.isEven ? 0 : waveHeight);
-      
+
       if (i == 0) {
         wavePath.lineTo(x, y);
       } else {
         final prevX = (i - 1) * segmentWidth;
         final prevY = size.height - ((i - 1).isEven ? 0 : waveHeight);
-        
+
         // Use quadratic bezier curve for smooth wave
         final controlX = (prevX + x) / 2;
-        final controlY = prevY > y ? 
-          size.height : 
-          size.height - waveHeight;
-        
+        final controlY = prevY > y ? size.height : size.height - waveHeight;
+
         wavePath.quadraticBezierTo(controlX, controlY, x, y);
       }
     }
-    
+
     wavePath.lineTo(size.width, size.height);
     wavePath.close();
-    
+
     canvas.drawPath(wavePath, wavePaint);
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

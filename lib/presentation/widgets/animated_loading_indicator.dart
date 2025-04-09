@@ -91,49 +91,60 @@ class _AnimatedLoadingIndicatorState extends State<AnimatedLoadingIndicator>
     final Color indicatorColor = widget.color ?? AppColors.primary;
     final theme = Theme.of(context);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            // Apply different animations based on type
-            Widget indicator;
-            switch (widget.type) {
-              case AnimationType.pulse:
-                indicator = Transform.scale(
-                  scale: _pulseAnimation.value,
-                  child: _buildIndicator(indicatorColor),
-                );
-                break;
-              case AnimationType.rotate:
-                indicator = Transform.rotate(
-                  angle: _rotateAnimation.value,
-                  child: _buildIndicator(indicatorColor),
-                );
-                break;
-              case AnimationType.bounce:
-                indicator = Transform.translate(
-                  offset: Offset(0, -10 * _bounceAnimation.value),
-                  child: _buildIndicator(indicatorColor),
-                );
-                break;
-            }
-
-            return indicator;
-          },
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.15,
         ),
-        if (widget.message != null) ...[
-          const SizedBox(height: AppDimensions.spacingMedium),
-          Text(
-            widget.message!,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodySmall?.color,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                // Apply different animations based on type
+                Widget indicator;
+                switch (widget.type) {
+                  case AnimationType.pulse:
+                    indicator = Transform.scale(
+                      scale: _pulseAnimation.value,
+                      child: _buildIndicator(indicatorColor),
+                    );
+                    break;
+                  case AnimationType.rotate:
+                    indicator = Transform.rotate(
+                      angle: _rotateAnimation.value,
+                      child: _buildIndicator(indicatorColor),
+                    );
+                    break;
+                  case AnimationType.bounce:
+                    indicator = Transform.translate(
+                      offset: Offset(0, -10 * _bounceAnimation.value),
+                      child: _buildIndicator(indicatorColor),
+                    );
+                    break;
+                }
+
+                return indicator;
+              },
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ],
+            if (widget.message != null) ...[
+              const SizedBox(height: AppDimensions.spacingMedium),
+              Flexible(
+                child: Text(
+                  widget.message!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.textTheme.bodySmall?.color,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              ),
+            ],
+      ],),),
     );
   }
 
@@ -205,6 +216,7 @@ class InlineLoadingIndicator extends StatefulWidget {
 class _InlineLoadingIndicatorState extends State<InlineLoadingIndicator>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _isActive = true;
 
   @override
   void initState() {
@@ -217,6 +229,8 @@ class _InlineLoadingIndicatorState extends State<InlineLoadingIndicator>
 
   @override
   void dispose() {
+    _isActive = false;
+    _controller.stop();
     _controller.dispose();
     super.dispose();
   }
@@ -224,6 +238,11 @@ class _InlineLoadingIndicatorState extends State<InlineLoadingIndicator>
   @override
   Widget build(BuildContext context) {
     final Color indicatorColor = widget.color ?? AppColors.primary;
+
+    // Only build animation if widget is active
+    if (!_isActive) {
+      return SizedBox(width: widget.width, height: widget.height);
+    }
 
     return Container(
       width: widget.width,
@@ -235,6 +254,9 @@ class _InlineLoadingIndicatorState extends State<InlineLoadingIndicator>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
+          // Check again inside the AnimatedBuilder to ensure it's still active
+          if (!_isActive) return const SizedBox();
+          
           return Align(
             alignment: Alignment.centerLeft,
             child: Container(
