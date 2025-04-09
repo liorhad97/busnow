@@ -15,11 +15,10 @@ import 'package:busnow/presentation/screens/bus_map/map_controls_view.dart';
 
 /// The main map screen where users can see bus stops and their schedules
 /// 
-/// This screen shows a map with bus stop markers, and allows users to:
-/// - View their current location
-/// - See nearby bus stops
-/// - View bus schedules in a bottom sheet
-/// - Zoom and pan the map
+/// This screen coordinates the interactions between:
+/// - The map view with bus stop markers
+/// - The control panel for map navigation
+/// - The bottom sheet for displaying bus schedules
 class BusMapScreen extends ConsumerStatefulWidget {
   const BusMapScreen({super.key});
 
@@ -312,12 +311,9 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
   Widget build(BuildContext context) {
     final busScheduleState = ref.watch(busScheduleProvider);
     final busStops = busScheduleState.busStops;
-    final selectedBusStop = busScheduleState.selectedBusStop;
     final status = busScheduleState.status;
-    final busSchedules = busScheduleState.busSchedules;
 
     final theme = Theme.of(context);
-    final screenSize = MediaQuery.of(context).size;
     final isDarkMode = theme.brightness == Brightness.dark;
 
     // Create markers when bus stops are loaded
@@ -424,8 +420,8 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
               busScheduleState: busScheduleState,
               mapFadeController: mapFadeController,
               onCollapseBottomSheet: collapseBottomSheet,
-              onDragEnd: handleBottomSheetDragEnd,
               onDragUpdate: handleBottomSheetDrag,
+              onDragEnd: handleBottomSheetDragEnd,
             ),
           ],
         ),
