@@ -1,21 +1,26 @@
-import 'dart:math' as math;
-import 'dart:ui';
-
-import 'package:busnow/core/constants/dimensions.dart';
-import 'package:busnow/presentation/widgets/bottom_sheets/enhanced_bottom_sheet.dart';
-import 'package:busnow/presentation/widgets/map/map_center_cursor.dart';
-import 'package:busnow/presentation/widgets/map/map_overlay_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/domain/models/bus_stop_model.dart';
+import 'package:busnow/presentation/mixins/bottom_sheet_controller_mixin.dart';
+import 'package:busnow/presentation/mixins/map_controller_mixin.dart';
+import 'package:busnow/presentation/providers/bus_providers.dart';
+import 'package:busnow/presentation/utils/map/bus_stop_detector.dart';
+import 'package:busnow/presentation/utils/map_markers_manager.dart';
+import 'package:busnow/presentation/widgets/bottom_sheets/enhanced_bottom_sheet.dart';
+import 'package:busnow/presentation/widgets/map/map_center_cursor.dart';
+import 'package:busnow/presentation/widgets/map/map_controls_panel.dart';
+import 'package:busnow/presentation/widgets/map/map_overlay_gradient.dart';
 
-import '../../domain/models/bus_stop_model.dart';
-import '../providers/bus_providers.dart';
-import '../utils/map_markers_manager.dart';
-import '../widgets/map/animated_map_controls.dart';
-
+/// The main map screen where users can see bus stops and their schedules
+/// 
+/// This screen shows a map with bus stop markers, and allows users to:
+/// - View their current location
+/// - See nearby bus stops
+/// - View bus schedules in a bottom sheet
+/// - Zoom and pan the map
 class BusMapScreen extends ConsumerStatefulWidget {
   const BusMapScreen({super.key});
 
@@ -24,60 +29,34 @@ class BusMapScreen extends ConsumerStatefulWidget {
 }
 
 class _BusMapScreenState extends ConsumerState<BusMapScreen>
-    with TickerProviderStateMixin {
-  PlatformMapController? _mapController;
+    with TickerProviderStateMixin, MapControllerMixin, BottomSheetControllerMixin {
+  
+  // Bus stop markers
   Set<Marker> _markers = {};
-  late AnimationController _mapFadeController;
-  late AnimationController _markerPulseController;
-  late AnimationController _bottomSheetController;
-
-  // Track if the map is being actively dragged
-  bool _isMapMoving = false;
-  bool _isCursorDetectionActive = true;
-
-  // Track map position and state
-  LatLng _currentMapCenter = const LatLng(0, 0);
-  double _currentZoom = AppDimensions.mapInitialZoom;
-
-  // Default map position as fallback
-  static const LatLng _defaultPosition = LatLng(37.7749, -122.4194);
-
-  // For tracking user location permissions status
-  bool _locationPermissionChecked = false;
-  LocationPermission? _locationPermission;
-  LatLng? _userLocation;
-
-  // For bottom sheet interactions
-  final double _collapsedSheetHeight = 120.0;
-  final double _expandedSheetHeight = 0.45; // 45% of screen (reduced from 50%)
-  bool _isBottomSheetExpanded = false;
-
+  
   // Flag to track if we've already navigated to closest stop on startup
   bool _initialNavigationPerformed = false;
+  
+  // For bus stop detection
+  late BusStopDetector _busStopDetector;
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize controllers for various animations
-    _mapFadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
+    
+    // Initialize map controllers
+    initializeMapControllers();
+    
+    // Initialize bottom sheet controller
+    initializeBottomSheetController();
+    
+    // Initialize bus stop detector
+    _busStopDetector = BusStopDetector(
+      calculateDistance: calculateDistanceInMeters,
     );
-
-    _markerPulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: AppDimensions.animDurationLoading),
-    )..repeat(reverse: true);
-
-    _bottomSheetController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
-      value: 0.0,
-    );
-
+    
     // Check location permissions when the app starts
-    _checkLocationPermission();
+    initializeLocationServices();
 
     // Load bus stop data after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -97,111 +76,9 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
 
   @override
   void dispose() {
-    _mapFadeController.dispose();
-    _markerPulseController.dispose();
-    _bottomSheetController.dispose();
+    disposeMapControllers();
+    disposeBottomSheetController();
     super.dispose();
-  }
-
-  /// Check location permission and get initial position
-  Future<void> _checkLocationPermission() async {
-    try {
-      // Check if location services are enabled
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        setState(() {
-          _locationPermissionChecked = true;
-          _locationPermission = LocationPermission.denied;
-        });
-        return;
-      }
-
-      // Check location permissions
-      LocationPermission permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied) {
-        // Request permission with beautiful UI prompt
-        _showLocationPermissionDialog();
-        permission = await Geolocator.requestPermission();
-      }
-
-      setState(() {
-        _locationPermissionChecked = true;
-        _locationPermission = permission;
-      });
-
-      // If we have permission, get the user's location
-      if (permission == LocationPermission.always ||
-          permission == LocationPermission.whileInUse) {
-        _getUserLocation();
-      }
-    } catch (e) {
-      print('Error checking location permission: $e');
-      setState(() {
-        _locationPermissionChecked = true;
-        _locationPermission = LocationPermission.denied;
-      });
-    }
-  }
-
-  /// Show an elegant location permission dialog
-  void _showLocationPermissionDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Enable Location'),
-            content: const Text(
-              'BusNow needs your location to show nearby bus stops and provide accurate arrival times.',
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                AppDimensions.borderRadiusMedium,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Not Now'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Permission request will happen after this dialog closes
-                },
-                child: const Text('Enable'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  /// Get user's current location
-  Future<void> _getUserLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      setState(() {
-        _userLocation = LatLng(position.latitude, position.longitude);
-        _currentMapCenter = _userLocation!;
-      });
-
-      // If map controller is already initialized, move to user location
-      if (_mapController != null && _userLocation != null) {
-        _mapController!.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: _userLocation!,
-              zoom: AppDimensions.mapInitialZoom,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error getting user location: $e');
-    }
   }
 
   // Coordinate the initial navigation to closest bus stop
@@ -213,18 +90,19 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     final busScheduleState = ref.read(busScheduleProvider);
     final busStops = busScheduleState.busStops;
 
-    if (_mapController == null || _userLocation == null || busStops.isEmpty)
+    if (mapController == null || userLocation == null || busStops.isEmpty) {
       return;
+    }
 
     // Set flag to prevent duplicate navigations
     _initialNavigationPerformed = true;
 
     try {
       // Move to user location first
-      _mapController!.animateCamera(
+      mapController!.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
-            target: _userLocation!,
+            target: userLocation!,
             zoom: AppDimensions.mapDetailedZoom,
           ),
         ),
@@ -242,11 +120,12 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
 
   // Navigate to the closest bus stop automatically
   Future<void> _navigateToClosestBusStop() async {
-    if (_mapController == null || _userLocation == null) return;
+    if (mapController == null || userLocation == null) return;
 
     try {
       // Find closest bus stop to current location
-      final closestBusStop = await _findClosestBusStop(_userLocation!);
+      final busStops = ref.read(busScheduleProvider).busStops;
+      final closestBusStop = await findClosestBusStop(userLocation!, busStops);
 
       // If found, select it and show its schedule
       if (closestBusStop != null) {
@@ -257,13 +136,13 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         ref.read(busScheduleProvider.notifier).selectBusStop(closestBusStop);
 
         // Show the bottom sheet with the bus schedule
-        _expandBottomSheet();
+        expandBottomSheet();
 
         // Highlight the map with gradient
-        _mapFadeController.forward();
+        mapFadeController.forward();
 
         // Animate the map to keep both user location and bus stop visible
-        _animateToStop(closestBusStop);
+        animateToStop(closestBusStop, bottomSheetController.value);
 
         // Provide haptic feedback to indicate success
         HapticFeedback.mediumImpact();
@@ -280,153 +159,48 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     // Select the bus stop
     ref.read(busScheduleProvider.notifier).selectBusStop(busStop);
 
-    // Animate sheet and map adjustments
-    _expandBottomSheet();
+    // Expand the bottom sheet
+    expandBottomSheet();
 
     // Highlight the map with gradient
-    _mapFadeController.forward();
+    mapFadeController.forward();
 
     // Animate the map to keep the bus stop visible above the sheet
-    _animateToStop(busStop);
-  }
-
-  // Show or hide the bottom sheet with animation
-  void _expandBottomSheet() {
-    setState(() {
-      _isBottomSheetExpanded = true;
-    });
-    _bottomSheetController.forward();
-  }
-
-  void _collapseBottomSheet() {
-    // Use a complete callback to ensure proper state update after animation completes
-    _bottomSheetController.reverse().then((_) {
-      if (mounted) {
-        setState(() {
-          _isBottomSheetExpanded = false;
-          // Ensure cursor detection is re-enabled
-          _isCursorDetectionActive = true;
-        });
-      }
-    });
-
-    // Update state immediately to prevent UI inconsistency during animation
-    setState(() {
-      _isBottomSheetExpanded = false;
-    });
-
-    // Reset map fade controller to ensure gradient disappears
-    _mapFadeController.reverse();
-  }
-
-  // Animate map camera to the selected bus stop
-  void _animateToStop(BusStop busStop) {
-    // Calculate offset to account for bottom sheet
-    final screenHeight = MediaQuery.of(context).size.height;
-    final visibleAreaRatio =
-        1.0 - (_expandedSheetHeight * _bottomSheetController.value);
-    final visibleMapHeight = screenHeight * visibleAreaRatio;
-
-    // Calculate target point that accounts for bottom sheet coverage
-    final targetPosition = LatLng(
-      busStop.latitude -
-          (0.0015 * _bottomSheetController.value), // Slight offset upward
-      busStop.longitude,
-    );
-
-    _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: targetPosition,
-          zoom: AppDimensions.mapDetailedZoom,
-          // Apply a gentle tilt for visual interest
-          tilt: 10 + (20 * _bottomSheetController.value),
-          bearing: 0 + (15 * _bottomSheetController.value), // Slight rotation
-        ),
-      ),
-    );
+    animateToStop(busStop, bottomSheetController.value);
   }
 
   // Check if center of map is over a bus stop
   void _checkForBusStopAtCenter() async {
-    if (_mapController == null ||
-        !_isCursorDetectionActive ||
-        _isBottomSheetExpanded)
+    if (mapController == null || !isCursorDetectionActive || isBottomSheetExpanded) {
       return;
+    }
 
     final busScheduleState = ref.read(busScheduleProvider);
     final busStops = busScheduleState.busStops;
     if (busStops.isEmpty) return;
 
     try {
-      // Use the tracked center position
-      final center = _currentMapCenter;
-
-      // Define search radius (approximately 200 meters)
-      const double detectionRadiusInMeters = 200;
-
       // Find all bus stops within the detection radius
-      List<BusStop> nearbyStops = [];
-
-      for (final busStop in busStops) {
-        final double distanceInMeters = _calculateDistanceInMeters(
-          center.latitude,
-          center.longitude,
-          busStop.latitude,
-          busStop.longitude,
-        );
-
-        // Debug print to help troubleshoot detection
-        print('Distance to bus stop ${busStop.name}: $distanceInMeters meters');
-
-        if (distanceInMeters < detectionRadiusInMeters) {
-          nearbyStops.add(busStop);
-          print(
-            'Bus stop detected: ${busStop.name} at $distanceInMeters meters',
-          );
-        }
-      }
-
+      final nearbyStops = _busStopDetector.findNearbyStops(currentMapCenter, busStops);
+      
       // If we found nearby stops, select them
       if (nearbyStops.isNotEmpty) {
         HapticFeedback.selectionClick();
 
-        // Sort stops by distance (closest first)
-        nearbyStops.sort((a, b) {
-          final distA = _calculateDistanceInMeters(
-            center.latitude,
-            center.longitude,
-            a.latitude,
-            a.longitude,
-          );
-          final distB = _calculateDistanceInMeters(
-            center.latitude,
-            center.longitude,
-            b.latitude,
-            b.longitude,
-          );
-          return distA.compareTo(distB);
-        });
-
         // Check if these are different from the current selection
         final current = busScheduleState.nearbyBusStops;
-        final areDifferent =
-            current.isEmpty ||
-            current.length != nearbyStops.length ||
-            !current.map((s) => s.id).contains(nearbyStops.first.id);
+        final areDifferent = _busStopDetector.areStopsDifferent(current, nearbyStops);
 
         if (areDifferent) {
           // Load schedules for all nearby stops
-          ref
-              .read(busScheduleProvider.notifier)
-              .selectNearbyBusStops(nearbyStops);
+          ref.read(busScheduleProvider.notifier).selectNearbyBusStops(nearbyStops);
 
           // Show bottom sheet and gradient
-          _expandBottomSheet();
-          _mapFadeController.forward();
+          expandBottomSheet();
+          mapFadeController.forward();
 
           // Animate to the closest one
-          _animateToStop(nearbyStops.first);
+          animateToStop(nearbyStops.first, bottomSheetController.value);
         }
       }
     } catch (e) {
@@ -434,120 +208,18 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     }
   }
 
-  // Calculate distance between two coordinates using the Haversine formula
-  // Returns distance in meters
-  double _calculateDistanceInMeters(
-    double lat1,
-    double lon1,
-    double lat2,
-    double lon2,
-  ) {
-    const double earthRadius = 6371000; // Earth's radius in meters
-
-    // Convert degrees to radians
-    final double lat1Rad = lat1 * (math.pi / 180);
-    final double lon1Rad = lon1 * (math.pi / 180);
-    final double lat2Rad = lat2 * (math.pi / 180);
-    final double lon2Rad = lon2 * (math.pi / 180);
-
-    // Haversine formula
-    final double dLat = lat2Rad - lat1Rad;
-    final double dLon = lon2Rad - lon1Rad;
-    final double a =
-        math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(lat1Rad) *
-            math.cos(lat2Rad) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2);
-    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    final double distance = earthRadius * c;
-
-    return distance;
-  }
-
-  // Find the closest bus stop to a given location, but only considering visible bus stops
-  Future<BusStop?> _findClosestBusStop(LatLng location) async {
-    if (_mapController == null) return null;
-
-    final busScheduleState = ref.read(busScheduleProvider);
-    final busStops = busScheduleState.busStops;
-
-    if (busStops.isEmpty) return null;
-
-    // Get the visible region bounds from the map controller
-    final visibleRegion = await _mapController!.getVisibleRegion();
-
-    // Filter bus stops to only those visible on screen
-    final visibleBusStops =
-        busStops.where((busStop) {
-          // Check if bus stop is within the visible region
-          final isVisible = _isLocationVisible(
-            LatLng(busStop.latitude, busStop.longitude),
-            visibleRegion,
-          );
-          return isVisible;
-        }).toList();
-
-    // If no visible bus stops, return null
-    if (visibleBusStops.isEmpty) return null;
-
-    BusStop? closest;
-    double minDistance = double.infinity;
-
-    // Only calculate distances for visible bus stops
-    for (final busStop in visibleBusStops) {
-      final distance = _calculateDistanceInMeters(
-        location.latitude,
-        location.longitude,
-        busStop.latitude,
-        busStop.longitude,
-      );
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        closest = busStop;
-      }
-    }
-
-    return closest;
-  }
-
-  // Check if a location is within the visible region
-  bool _isLocationVisible(LatLng location, LatLngBounds visibleRegion) {
-    final ne = visibleRegion.northeast;
-    final sw = visibleRegion.southwest;
-
-    return location.latitude <= ne.latitude &&
-        location.latitude >= sw.latitude &&
-        location.longitude <= ne.longitude &&
-        location.longitude >= sw.longitude;
-  }
-
   // Reset the UI and reload the map state - performs a complete app reset
   void _refreshScreen() async {
     HapticFeedback.mediumImpact();
 
     // Completely dispose and restart all animation controllers
-    _mapFadeController.dispose();
-    _markerPulseController.dispose();
-    _bottomSheetController.dispose();
+    mapFadeController.dispose();
+    markerPulseController.dispose();
+    bottomSheetController.dispose();
 
     // Re-create controllers from scratch
-    _mapFadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
-    );
-
-    _markerPulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: AppDimensions.animDurationLoading),
-    )..repeat(reverse: true);
-
-    _bottomSheetController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
-      value: 0.0,
-    );
+    initializeMapControllers();
+    initializeBottomSheetController();
 
     // Clear cached data in the provider before UI updates
     ref.read(busScheduleProvider.notifier).reset();
@@ -555,15 +227,15 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     // Reset all state variables in one go
     setState(() {
       _markers = {};
-      _isBottomSheetExpanded = false;
-      _isMapMoving = false;
-      _isCursorDetectionActive = true;
+      isBottomSheetExpanded = false;
+      isMapMoving = false;
+      isCursorDetectionActive = true;
       _initialNavigationPerformed = false;
     });
 
     // Force reload location data
     try {
-      await _getUserLocation();
+      await getUserLocation();
     } catch (e) {
       print('Error refreshing user location: $e');
     }
@@ -572,14 +244,16 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     ref.read(busScheduleProvider.notifier).loadBusStops();
 
     // Show a confirmation to the user
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('App refreshed - Drag map to activate cursor'),
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('App refreshed - Drag map to activate cursor'),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
   }
 
   @override
@@ -596,7 +270,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
 
     // Determine the initial camera position based on user location or default
     final initialCameraPosition = CameraPosition(
-      target: _userLocation ?? _defaultPosition,
+      target: userLocation ?? defaultPosition,
       zoom: AppDimensions.mapInitialZoom,
     );
 
@@ -608,7 +282,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         // Create markers for bus stops
         final markers = await MapMarkersManager.createMarkers(
           busStops: busStops,
-          animationController: _markerPulseController,
+          animationController: markerPulseController,
           onMarkerTap: _onMarkerTap,
         );
 
@@ -621,8 +295,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness:
-            isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
         systemNavigationBarColor: theme.colorScheme.surface,
       ),
       child: Scaffold(
@@ -639,15 +312,15 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
               markers: _markers,
               onMapCreated: (controller) async {
                 setState(() {
-                  _mapController = controller;
+                  mapController = controller;
                 });
 
                 // If we already have user location, move the camera there
-                if (_userLocation != null) {
+                if (userLocation != null) {
                   controller.animateCamera(
                     CameraUpdate.newCameraPosition(
                       CameraPosition(
-                        target: _userLocation!,
+                        target: userLocation!,
                         zoom: AppDimensions.mapInitialZoom,
                       ),
                     ),
@@ -663,175 +336,91 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
               },
               onCameraMove: (CameraPosition position) {
                 setState(() {
-                  _isMapMoving = true;
-                  _isCursorDetectionActive =
-                      false; // Hide cursor during movement
+                  isMapMoving = true;
+                  isCursorDetectionActive = false; // Hide cursor during movement
                 });
-                _currentMapCenter = position.target;
-                _currentZoom = position.zoom;
+                currentMapCenter = position.target;
+                currentZoom = position.zoom;
               },
               onCameraIdle: () {
                 // Only activate cursor detection when the map was being moved by user
                 // and is now stopping (finger lifted)
-                if (_isMapMoving) {
+                if (isMapMoving) {
                   setState(() {
-                    _isMapMoving = false;
-                    _isCursorDetectionActive =
-                        true; // Show cursor after finger lift
+                    isMapMoving = false;
+                    isCursorDetectionActive = true; // Show cursor after finger lift
                   });
                   // Check for bus stops at the center point
                   _checkForBusStopAtCenter();
                 } else {
                   setState(() {
-                    _isMapMoving = false;
+                    isMapMoving = false;
                   });
                 }
               },
             ),
 
             // Target cursor in center of screen - only shown when bottom sheet is not expanded
-            if (!_isBottomSheetExpanded)
-              MapCenterCursor(isMapMoving: _isMapMoving),
+            if (!isBottomSheetExpanded)
+              MapCenterCursor(isMapMoving: isMapMoving),
 
             // Map overlay gradient
-            MapOverlayGradient(fadeAnimation: _mapFadeController),
+            MapOverlayGradient(fadeAnimation: mapFadeController),
 
+            // Map controls panel
             AnimatedPositioned(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
               right: AppDimensions.spacingMedium,
-              bottom:
-                  _bottomSheetController.value > 0.05
-                      ? screenSize.height *
-                              _expandedSheetHeight *
-                              _bottomSheetController.value +
-                          AppDimensions.spacingMedium
-                      : AppDimensions.spacingExtraLarge,
-              child: AnimatedMapControls(
-                mapController: _mapController,
-                userLocation: _userLocation ?? _defaultPosition,
+              bottom: bottomSheetController.value > 0.05
+                  ? screenSize.height * expandedSheetHeight * bottomSheetController.value +
+                      AppDimensions.spacingMedium
+                  : AppDimensions.spacingExtraLarge,
+              child: MapControlsPanel(
+                mapController: mapController,
+                userLocation: userLocation ?? defaultPosition,
                 onZoomIn: () {
-                  if (_mapController != null && _currentZoom < 20) {
-                    _mapController!.animateCamera(CameraUpdate.zoomIn());
+                  if (mapController != null && currentZoom < 20) {
+                    mapController!.animateCamera(CameraUpdate.zoomIn());
                   }
                 },
                 onZoomOut: () {
-                  if (_mapController != null && _currentZoom > 5) {
-                    _mapController!.animateCamera(CameraUpdate.zoomOut());
+                  if (mapController != null && currentZoom > 5) {
+                    mapController!.animateCamera(CameraUpdate.zoomOut());
                   }
                 },
-                onLocate: () async {
-                  if (_userLocation == null) {
-                    await _getUserLocation();
-                  }
-
-                  if (_mapController != null && _userLocation != null) {
-                    // First zoom to user location
-                    _mapController!.animateCamera(
-                      CameraUpdate.newCameraPosition(
-                        CameraPosition(
-                          target: _userLocation!,
-                          zoom: AppDimensions.mapDetailedZoom,
-                        ),
-                      ),
-                    );
-
-                    // Reset bottom sheet state initially
-                    if (_isBottomSheetExpanded) {
-                      _collapseBottomSheet();
-                      _mapFadeController.reverse();
-                    }
-                    // make a delay to allow the map to settle
-                    await Future.delayed(const Duration(milliseconds: 500));
-                    // Find closest bus stop to current location
-                    final closestBusStop = await _findClosestBusStop(
-                      _userLocation!,
-                    );
-
-                    // If found, select it and show its schedule
-                    if (closestBusStop != null) {
-                      // Add a slight delay for better UX (let the user see their location first)
-                      await Future.delayed(const Duration(milliseconds: 300));
-
-                      // Select the bus stop
-                      ref
-                          .read(busScheduleProvider.notifier)
-                          .selectBusStop(closestBusStop);
-
-                      // Show the bottom sheet with the bus schedule
-                      _expandBottomSheet();
-
-                      // Highlight the map with gradient
-                      _mapFadeController.forward();
-
-                      // Animate the map to keep both user location and bus stop visible
-                      _animateToStop(closestBusStop);
-
-                      // Provide haptic feedback to indicate success
-                      HapticFeedback.mediumImpact();
-                    }
-                  }
-                },
+                onLocate: _handleLocateButtonPress,
               ),
             ),
 
-            // Bottom sheet with custom implementation
-            // Bottom sheet with custom implementation
+            // Bottom sheet
             AnimatedBuilder(
-              animation: _bottomSheetController,
+              animation: bottomSheetController,
               builder: (context, child) {
-                final height =
-                    _collapsedSheetHeight +
-                    (_bottomSheetController.value *
-                        (screenSize.height * _expandedSheetHeight -
-                            _collapsedSheetHeight));
+                final height = calculateSheetHeight(screenSize);
 
                 return Positioned(
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  height: _bottomSheetController.value > 0 ? height : 0,
+                  height: bottomSheetController.value > 0 ? height : 0,
                   child: GestureDetector(
-                    onVerticalDragUpdate: (details) {
-                      // Convert drag to animation value
-                      final newValue =
-                          _bottomSheetController.value -
-                          (details.primaryDelta! /
-                              ((screenSize.height * _expandedSheetHeight) -
-                                  _collapsedSheetHeight));
-                      _bottomSheetController.value = newValue.clamp(0.0, 1.0);
-                    },
-                    onVerticalDragEnd: (details) {
-                      if (details.primaryVelocity! > 500 ||
-                          _bottomSheetController.value < 0.3) {
-                        _collapseBottomSheet();
-                      } else if (details.primaryVelocity! < -500 ||
-                          _bottomSheetController.value > 0.7) {
-                        _expandBottomSheet();
-                      } else {
-                        if (_bottomSheetController.value > 0.5) {
-                          _expandBottomSheet();
-                        } else {
-                          _collapseBottomSheet();
-                        }
-                      }
-                    },
+                    onVerticalDragUpdate: (details) => 
+                        handleBottomSheetDrag(details, screenSize),
+                    onVerticalDragEnd: handleBottomSheetDragEnd,
                     child: EnhancedBottomSheet(
-                      animation: _bottomSheetController,
+                      animation: bottomSheetController,
                       selectedBusStop: selectedBusStop,
-                      nearbyBusStops:
-                          busScheduleState.nearbyBusStops, // Add this line
+                      nearbyBusStops: busScheduleState.nearbyBusStops,
                       status: status,
                       busSchedules: busSchedules,
                       earliestTimes: busScheduleState.getEarliestArrivalTimes(),
                       onClose: () {
-                        _collapseBottomSheet();
-                        _mapFadeController.reverse();
+                        collapseBottomSheet();
+                        mapFadeController.reverse();
                       },
                       onRefresh: () {
-                        ref
-                            .read(busScheduleProvider.notifier)
-                            .refreshBusSchedules();
+                        ref.read(busScheduleProvider.notifier).refreshBusSchedules();
                       },
                     ),
                   ),
@@ -842,5 +431,58 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         ),
       ),
     );
+  }
+  
+  // Handle the locate button press with proper behavior
+  Future<void> _handleLocateButtonPress() async {
+    if (userLocation == null) {
+      await getUserLocation();
+    }
+
+    if (mapController != null && userLocation != null) {
+      // First zoom to user location
+      mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: userLocation!,
+            zoom: AppDimensions.mapDetailedZoom,
+          ),
+        ),
+      );
+
+      // Reset bottom sheet state initially
+      if (isBottomSheetExpanded) {
+        collapseBottomSheet();
+        mapFadeController.reverse();
+      }
+      
+      // Make a delay to allow the map to settle
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Find closest bus stop to current location
+      final busStops = ref.read(busScheduleProvider).busStops;
+      final closestBusStop = await findClosestBusStop(userLocation!, busStops);
+
+      // If found, select it and show its schedule
+      if (closestBusStop != null) {
+        // Add a slight delay for better UX (let the user see their location first)
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        // Select the bus stop
+        ref.read(busScheduleProvider.notifier).selectBusStop(closestBusStop);
+
+        // Show the bottom sheet with the bus schedule
+        expandBottomSheet();
+
+        // Highlight the map with gradient
+        mapFadeController.forward();
+
+        // Animate the map to keep both user location and bus stop visible
+        animateToStop(closestBusStop, bottomSheetController.value);
+
+        // Provide haptic feedback to indicate success
+        HapticFeedback.mediumImpact();
+      }
+    }
   }
 }
