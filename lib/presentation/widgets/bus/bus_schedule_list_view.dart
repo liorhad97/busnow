@@ -1,73 +1,119 @@
-import 'package:busnow/presentation/widgets/bus/grouped_bus_schedule_item.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/dimensions.dart';
-import 'package:busnow/domain/models/bus_schedule_group_model.dart';
+import 'package:busnow/core/localization/app_localizations.dart';
+import 'package:busnow/domain/models/bus_schedule_model.dart';
+import 'package:busnow/presentation/widgets/bus/bus_schedule_row.dart';
 
-/// A beautifully animated list of grouped bus schedules
-///
-/// Features:
-/// - Shows multiple arrival times for the same bus route in a single item
-/// - Staggered entrance animations for items
-/// - Fade and slide effects synced with parent animation
-/// - Custom scroll physics for smooth scrolling
-/// - Highlighting for earliest arrivals within each group
+/// A widget that displays a list of bus schedules grouped by route
 class BusScheduleListView extends StatelessWidget {
   final ScrollController scrollController;
   final Animation<double> contentAnimation;
   final List<BusScheduleGroup> scheduleGroups;
 
   const BusScheduleListView({
-    super.key,
+    Key? key,
     required this.scrollController,
     required this.contentAnimation,
     required this.scheduleGroups,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context);
+    
     return AnimatedBuilder(
       animation: contentAnimation,
       builder: (context, child) {
-        return Opacity(opacity: contentAnimation.value, child: child);
-      },
-      child: ListView.builder(
-        controller: scrollController,
-        padding: const EdgeInsets.fromLTRB(
-          AppDimensions.spacingMedium,
-          AppDimensions.spacingSmall,
-          AppDimensions.spacingMedium,
-          AppDimensions.spacingLarge,
-        ),
-        physics: const BouncingScrollPhysics(),
-        itemCount: scheduleGroups.length,
-        itemBuilder: (context, index) {
-          final scheduleGroup = scheduleGroups[index];
+        // Apply slide-up animation
+        final slideDistance = (1 - contentAnimation.value) * 100;
 
-          // Create a staggered animation for each item
-          return TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.0, end: 1.0),
-            duration: Duration(
-              milliseconds: AppDimensions.animDurationMedium + (index * 50),
-            ),
-            curve: Curves.easeOutQuart,
-            builder: (context, value, child) {
-              // Only animate once content animation is active
-              final adjustedValue = value * contentAnimation.value;
-
-              return Transform.translate(
-                offset: Offset(0, 20 * (1 - adjustedValue)),
-                child: Opacity(opacity: adjustedValue, child: child),
-              );
-            },
-            child: Padding(
+        return Opacity(
+          opacity: contentAnimation.value,
+          child: Transform.translate(
+            offset: Offset(0, slideDistance),
+            child: ListView.builder(
+              controller: scrollController,
               padding: const EdgeInsets.only(
-                bottom: AppDimensions.spacingSmall,
+                left: AppDimensions.spacingMedium,
+                right: AppDimensions.spacingMedium,
+                bottom: AppDimensions.spacingLarge,
               ),
-              child: GroupedBusScheduleItem(scheduleGroup: scheduleGroup),
+              itemCount: scheduleGroups.length,
+              itemBuilder: (context, index) {
+                final group = scheduleGroups[index];
+                final schedules = group.schedules;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Group header with route number
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppDimensions.spacingSmall,
+                      ),
+                      child: Row(
+                        children: [
+                          // Route number badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimensions.spacingSmall,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.borderRadiusSmall,
+                              ),
+                            ),
+                            child: Text(
+                              group.routeNumber,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppDimensions.spacingSmall),
+                          // Destination text
+                          Expanded(
+                            child: Text(
+                              group.destination,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // Schedule count
+                          Text(
+                            schedules.length == 1
+                                ? '1 ${localizations.translate("departure")}'
+                                : '${schedules.length} ${localizations.translate("departures")}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Schedule rows
+                    ...schedules.map((schedule) => BusScheduleRow(
+                          schedule: schedule,
+                        )),
+
+                    // Divider between groups
+                    if (index < scheduleGroups.length - 1)
+                      const Divider(height: AppDimensions.spacingLarge),
+                  ],
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

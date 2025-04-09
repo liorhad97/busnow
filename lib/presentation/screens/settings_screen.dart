@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/localization/app_localizations.dart';
 import 'package:busnow/presentation/widgets/settings/language_selector.dart';
 
 /// Settings screen for the app
@@ -10,9 +11,11 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final localizations = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(localizations.translate('settings')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -21,18 +24,18 @@ class SettingsScreen extends ConsumerWidget {
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppDimensions.spacingMedium),
-          children: const [
+          children: [
             // Language selector section
             Card(
-              margin: EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
+              margin: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
               child: Padding(
-                padding: EdgeInsets.all(AppDimensions.spacingSmall),
+                padding: const EdgeInsets.all(AppDimensions.spacingSmall),
                 child: LanguageSelector(),
               ),
             ),
             
             // Add more settings sections as needed
-            SizedBox(height: AppDimensions.spacingLarge),
+            const SizedBox(height: AppDimensions.spacingLarge),
           ],
         ),
       ),
