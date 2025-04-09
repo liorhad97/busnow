@@ -80,12 +80,29 @@ class LocaleNotifier extends StateNotifier<LocaleState> {
   /// Set the app locale to the device locale if supported
   Future<void> useDeviceLocale(BuildContext context) async {
     final deviceLocale = Localizations.localeOf(context);
-
-    if (deviceLocale.languageCode == 'he') {
-      await setLocale(Languages.hebrew);
-    } else {
-      // Default to English for any unsupported language
-      await setLocale(Languages.english);
+    final languageCode = deviceLocale.languageCode;
+    
+    // Check if we support this language
+    switch (languageCode) {
+      case 'en':
+        await setLocale(Languages.english);
+        break;
+      case 'he':
+        await setLocale(Languages.hebrew);
+        break;
+      case 'ar':
+        await setLocale(Languages.arabic);
+        break;
+      case 'es':
+        await setLocale(Languages.spanish);
+        break;
+      case 'ru':
+        await setLocale(Languages.russian);
+        break;
+      default:
+        // Default to English for any unsupported language
+        await setLocale(Languages.english);
+        break;
     }
   }
 }
