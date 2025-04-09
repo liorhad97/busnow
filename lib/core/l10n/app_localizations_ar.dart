@@ -68,6 +68,19 @@ class AppLocalizationsAr implements AppLocalizations {
 
   @override
   String get error => 'خطأ';
+  
+  @override
+  String get detailsMessage => 'اختر محطة حافلة لعرض الجداول';
+  
+  // ====================== Map Controls ======================
+  @override
+  String get zoomIn => 'تكبير';
+  
+  @override
+  String get zoomOut => 'تصغير';
+  
+  @override
+  String get myLocation => 'موقعي';
 
   // Language settings
   @override
