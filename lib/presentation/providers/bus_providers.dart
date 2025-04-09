@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/local_data_source.dart';
@@ -6,6 +7,8 @@ import '../../domain/models/bus_schedule_model.dart';
 import '../../domain/models/bus_stop_model.dart';
 import '../../domain/models/bus_schedule_group_model.dart';
 import '../../domain/repositories/repository_interface.dart';
+import 'localized_bus_provider.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 // Repository providers
 final busScheduleRepositoryProvider = Provider<BusScheduleRepository>((ref) {
@@ -122,7 +125,7 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
 
   BusScheduleNotifier(this._repository) : super(const BusScheduleState());
 
-  Future<void> loadBusStops() async {
+  Future<void> loadBusStops({LocalizedBusMessages? l10n}) async {
     state = state.copyWith(status: BusScheduleStateStatus.loading);
 
     try {
@@ -134,9 +137,13 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
         clearErrorMessage: true,
       );
     } catch (e) {
+      final errorMessage = l10n != null
+          ? l10n.getLoadBusStopsErrorMessage(e as Exception)
+          : 'Failed to load bus stops: ${e.toString()}';
+          
       state = state.copyWith(
         status: BusScheduleStateStatus.error,
-        errorMessage: 'Failed to load bus stops: ${e.toString()}',
+        errorMessage: errorMessage,
       );
     }
   }
@@ -146,8 +153,8 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
     await loadBusSchedulesForStop(busStop.id);
   }
 
-  // New method to select multiple nearby bus stops and load their combined schedules
-  Future<void> selectNearbyBusStops(List<BusStop> nearbyStops) async {
+  // Method to select multiple nearby bus stops and load their combined schedules
+  Future<void> selectNearbyBusStops(List<BusStop> nearbyStops, {LocalizedBusMessages? l10n}) async {
     if (nearbyStops.isEmpty) return;
 
     // Set the primary selected stop (for UI display purposes)
@@ -180,14 +187,18 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
         clearErrorMessage: true,
       );
     } catch (e) {
+      final errorMessage = l10n != null
+          ? l10n.getLoadBusSchedulesErrorMessage(e as Exception)
+          : 'Failed to load combined bus schedules: ${e.toString()}';
+      
       state = state.copyWith(
         status: BusScheduleStateStatus.error,
-        errorMessage: 'Failed to load combined bus schedules: ${e.toString()}',
+        errorMessage: errorMessage,
       );
     }
   }
 
-  Future<void> loadBusSchedulesForStop(String busStopId) async {
+  Future<void> loadBusSchedulesForStop(String busStopId, {LocalizedBusMessages? l10n}) async {
     state = state.copyWith(status: BusScheduleStateStatus.loading);
 
     try {
@@ -204,9 +215,13 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
         clearErrorMessage: true,
       );
     } catch (e) {
+      final errorMessage = l10n != null
+          ? l10n.getLoadBusSchedulesErrorMessage(e as Exception)
+          : 'Failed to load bus schedules: ${e.toString()}';
+      
       state = state.copyWith(
         status: BusScheduleStateStatus.error,
-        errorMessage: 'Failed to load bus schedules: ${e.toString()}',
+        errorMessage: errorMessage,
       );
     }
   }
@@ -219,13 +234,13 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
     state = state.copyWith(isBottomSheetOpen: false);
   }
 
-  Future<void> refreshBusSchedules() async {
+  Future<void> refreshBusSchedules({LocalizedBusMessages? l10n}) async {
     if (state.nearbyBusStops.isNotEmpty) {
       // If we have multiple nearby stops, refresh their combined schedules
-      await selectNearbyBusStops(state.nearbyBusStops);
+      await selectNearbyBusStops(state.nearbyBusStops, l10n: l10n);
     } else if (state.selectedBusStop != null) {
       // Otherwise just refresh the single selected stop
-      await loadBusSchedulesForStop(state.selectedBusStop!.id);
+      await loadBusSchedulesForStop(state.selectedBusStop!.id, l10n: l10n);
     }
   }
 
@@ -243,7 +258,11 @@ class BusScheduleNotifier extends StateNotifier<BusScheduleState> {
   }
 
   // Helper method to generate a title for the sheet based on nearby bus stops
-  String getSheetTitle() {
+  String getSheetTitle({LocalizedBusMessages? l10n}) {
+    if (l10n != null) {
+      return l10n.getSheetTitle(state);
+    }
+    
     if (state.nearbyBusStops.isEmpty) {
       return state.selectedBusStop?.name ?? "No Bus Stop Selected";
     }
