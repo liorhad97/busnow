@@ -68,6 +68,9 @@ class AppLocalizationsEn implements AppLocalizations {
 
   @override
   String get error => 'Error';
+  
+  @override
+  String get detailsMessage => 'Select a bus stop to view schedules';
 
   // Language settings
   @override
