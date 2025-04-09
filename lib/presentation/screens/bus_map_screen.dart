@@ -9,10 +9,9 @@ import 'package:busnow/presentation/mixins/map_controller_mixin.dart';
 import 'package:busnow/presentation/providers/bus_providers.dart';
 import 'package:busnow/presentation/utils/map/bus_stop_detector.dart';
 import 'package:busnow/presentation/utils/map_markers_manager.dart';
-import 'package:busnow/presentation/widgets/bottom_sheets/enhanced_bottom_sheet.dart';
-import 'package:busnow/presentation/widgets/map/map_center_cursor.dart';
-import 'package:busnow/presentation/widgets/map/map_controls_panel.dart';
-import 'package:busnow/presentation/widgets/map/map_overlay_gradient.dart';
+import 'package:busnow/presentation/screens/bus_map/map_view.dart';
+import 'package:busnow/presentation/screens/bus_map/bottom_sheet_view.dart';
+import 'package:busnow/presentation/screens/bus_map/map_controls_view.dart';
 
 /// The main map screen where users can see bus stops and their schedules
 /// 
@@ -255,183 +254,6 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
       );
     }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final busScheduleState = ref.watch(busScheduleProvider);
-    final busStops = busScheduleState.busStops;
-    final selectedBusStop = busScheduleState.selectedBusStop;
-    final status = busScheduleState.status;
-    final busSchedules = busScheduleState.busSchedules;
-
-    final theme = Theme.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    final isDarkMode = theme.brightness == Brightness.dark;
-
-    // Determine the initial camera position based on user location or default
-    final initialCameraPosition = CameraPosition(
-      target: userLocation ?? defaultPosition,
-      zoom: AppDimensions.mapInitialZoom,
-    );
-
-    // Create markers when bus stops are loaded
-    if (status == BusScheduleStateStatus.loaded &&
-        _markers.isEmpty &&
-        busStops.isNotEmpty) {
-      Future.sync(() async {
-        // Create markers for bus stops
-        final markers = await MapMarkersManager.createMarkers(
-          busStops: busStops,
-          animationController: markerPulseController,
-          onMarkerTap: _onMarkerTap,
-        );
-
-        setState(() {
-          _markers = markers;
-        });
-      });
-    }
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor: theme.colorScheme.surface,
-      ),
-      child: Scaffold(
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            // The map view
-            PlatformMap(
-              initialCameraPosition: initialCameraPosition,
-              mapType: MapType.normal,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              compassEnabled: true,
-              markers: _markers,
-              onMapCreated: (controller) async {
-                setState(() {
-                  mapController = controller;
-                });
-
-                // If we already have user location, move the camera there
-                if (userLocation != null) {
-                  controller.animateCamera(
-                    CameraUpdate.newCameraPosition(
-                      CameraPosition(
-                        target: userLocation!,
-                        zoom: AppDimensions.mapInitialZoom,
-                      ),
-                    ),
-                  );
-
-                  // Added auto-navigation to closest bus stop on app start
-                  // Wait for the map to settle
-                  await Future.delayed(const Duration(milliseconds: 800));
-
-                  // Coordinate the initial navigation
-                  await _initializeMapAndNavigate();
-                }
-              },
-              onCameraMove: (CameraPosition position) {
-                setState(() {
-                  isMapMoving = true;
-                  isCursorDetectionActive = false; // Hide cursor during movement
-                });
-                currentMapCenter = position.target;
-                currentZoom = position.zoom;
-              },
-              onCameraIdle: () {
-                // Only activate cursor detection when the map was being moved by user
-                // and is now stopping (finger lifted)
-                if (isMapMoving) {
-                  setState(() {
-                    isMapMoving = false;
-                    isCursorDetectionActive = true; // Show cursor after finger lift
-                  });
-                  // Check for bus stops at the center point
-                  _checkForBusStopAtCenter();
-                } else {
-                  setState(() {
-                    isMapMoving = false;
-                  });
-                }
-              },
-            ),
-
-            // Target cursor in center of screen - only shown when bottom sheet is not expanded
-            if (!isBottomSheetExpanded)
-              MapCenterCursor(isMapMoving: isMapMoving),
-
-            // Map overlay gradient
-            MapOverlayGradient(fadeAnimation: mapFadeController),
-
-            // Map controls panel
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutCubic,
-              right: AppDimensions.spacingMedium,
-              bottom: bottomSheetController.value > 0.05
-                  ? screenSize.height * expandedSheetHeight * bottomSheetController.value +
-                      AppDimensions.spacingMedium
-                  : AppDimensions.spacingExtraLarge,
-              child: MapControlsPanel(
-                mapController: mapController,
-                userLocation: userLocation ?? defaultPosition,
-                onZoomIn: () {
-                  if (mapController != null && currentZoom < 20) {
-                    mapController!.animateCamera(CameraUpdate.zoomIn());
-                  }
-                },
-                onZoomOut: () {
-                  if (mapController != null && currentZoom > 5) {
-                    mapController!.animateCamera(CameraUpdate.zoomOut());
-                  }
-                },
-                onLocate: _handleLocateButtonPress,
-              ),
-            ),
-
-            // Bottom sheet
-            AnimatedBuilder(
-              animation: bottomSheetController,
-              builder: (context, child) {
-                final height = calculateSheetHeight(screenSize);
-
-                return Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: bottomSheetController.value > 0 ? height : 0,
-                  child: GestureDetector(
-                    onVerticalDragUpdate: (details) => 
-                        handleBottomSheetDrag(details, screenSize),
-                    onVerticalDragEnd: handleBottomSheetDragEnd,
-                    child: EnhancedBottomSheet(
-                      animation: bottomSheetController,
-                      selectedBusStop: selectedBusStop,
-                      nearbyBusStops: busScheduleState.nearbyBusStops,
-                      status: status,
-                      busSchedules: busSchedules,
-                      earliestTimes: busScheduleState.getEarliestArrivalTimes(),
-                      onClose: () {
-                        collapseBottomSheet();
-                        mapFadeController.reverse();
-                      },
-                      onRefresh: () {
-                        ref.read(busScheduleProvider.notifier).refreshBusSchedules();
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   
   // Handle the locate button press with proper behavior
   Future<void> _handleLocateButtonPress() async {
@@ -484,5 +306,130 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         HapticFeedback.mediumImpact();
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final busScheduleState = ref.watch(busScheduleProvider);
+    final busStops = busScheduleState.busStops;
+    final selectedBusStop = busScheduleState.selectedBusStop;
+    final status = busScheduleState.status;
+    final busSchedules = busScheduleState.busSchedules;
+
+    final theme = Theme.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    // Create markers when bus stops are loaded
+    if (status == BusScheduleStateStatus.loaded &&
+        _markers.isEmpty &&
+        busStops.isNotEmpty) {
+      Future.sync(() async {
+        // Create markers for bus stops
+        final markers = await MapMarkersManager.createMarkers(
+          busStops: busStops,
+          animationController: markerPulseController,
+          onMarkerTap: _onMarkerTap,
+        );
+
+        setState(() {
+          _markers = markers;
+        });
+      });
+    }
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: theme.colorScheme.surface,
+      ),
+      child: Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // The map view
+            MapView(
+              isBottomSheetExpanded: isBottomSheetExpanded,
+              isMapMoving: isMapMoving,
+              mapController: mapController,
+              markers: _markers,
+              userLocation: userLocation,
+              defaultPosition: defaultPosition,
+              mapFadeController: mapFadeController,
+              onMapCreated: (controller) async {
+                setState(() {
+                  mapController = controller;
+                });
+
+                // If we already have user location, move the camera there
+                if (userLocation != null) {
+                  controller.animateCamera(
+                    CameraUpdate.newCameraPosition(
+                      CameraPosition(
+                        target: userLocation!,
+                        zoom: AppDimensions.mapInitialZoom,
+                      ),
+                    ),
+                  );
+
+                  // Added auto-navigation to closest bus stop on app start
+                  // Wait for the map to settle
+                  await Future.delayed(const Duration(milliseconds: 800));
+
+                  // Coordinate the initial navigation
+                  await _initializeMapAndNavigate();
+                }
+              },
+              onCameraMove: (CameraPosition position) {
+                setState(() {
+                  isMapMoving = true;
+                  isCursorDetectionActive = false; // Hide cursor during movement
+                });
+                currentMapCenter = position.target;
+                currentZoom = position.zoom;
+              },
+              onCameraIdle: () {
+                // Only activate cursor detection when the map was being moved by user
+                // and is now stopping (finger lifted)
+                if (isMapMoving) {
+                  setState(() {
+                    isMapMoving = false;
+                    isCursorDetectionActive = true; // Show cursor after finger lift
+                  });
+                  // Check for bus stops at the center point
+                  _checkForBusStopAtCenter();
+                } else {
+                  setState(() {
+                    isMapMoving = false;
+                  });
+                }
+              },
+            ),
+
+            // Map controls panel
+            MapControlsView(
+              bottomSheetController: bottomSheetController,
+              expandedSheetHeight: expandedSheetHeight,
+              mapController: mapController,
+              currentZoom: currentZoom,
+              userLocation: userLocation ?? defaultPosition,
+              onLocate: _handleLocateButtonPress,
+            ),
+
+            // Bottom sheet
+            BottomSheetView(
+              bottomSheetController: bottomSheetController,
+              calculateSheetHeight: calculateSheetHeight,
+              busScheduleState: busScheduleState,
+              mapFadeController: mapFadeController,
+              onCollapseBottomSheet: collapseBottomSheet,
+              onDragEnd: handleBottomSheetDragEnd,
+              onDragUpdate: handleBottomSheetDrag,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
