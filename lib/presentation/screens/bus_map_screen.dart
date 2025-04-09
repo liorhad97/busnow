@@ -218,56 +218,6 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     }
   }
 
-  // // Reset the UI and reload the map state - performs a complete app reset
-  // void _refreshScreen() async {
-  //   HapticFeedback.mediumImpact();
-
-  //   // Completely dispose and restart all animation controllers
-  //   mapFadeController.dispose();
-  //   markerPulseController.dispose();
-  //   bottomSheetController.dispose();
-
-  //   // Re-create controllers from scratch
-  //   initializeMapControllers(this);
-  //   initializeBottomSheetController(this);
-
-  //   // Clear cached data in the provider before UI updates
-  //   ref.read(busScheduleProvider.notifier).reset();
-
-  //   // Reset all state variables in one go
-  //   setState(() {
-  //     _markers = {};
-  //     isBottomSheetExpanded = false;
-  //     isMapMoving = false;
-  //     isCursorDetectionActive = true;
-  //     _initialNavigationPerformed = false;
-  //   });
-
-  //   // Force reload location data
-  //   try {
-  //     await getUserLocation();
-  //   } catch (e) {
-  //     print('Error refreshing user location: $e');
-  //   }
-
-  //   // Reload bus stops data completely
-  //   ref.read(busScheduleProvider.notifier).loadBusStops();
-
-  //   // Show a confirmation to the user
-  //   if (mounted) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: const Text('App refreshed - Drag map to activate cursor'),
-  //         duration: const Duration(seconds: 3),
-  //         behavior: SnackBarBehavior.floating,
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(10),
-  //         ),
-  //       ),
-  //     );
-  //   }
-  // }
-
   // Handle the locate button press with proper behavior
   Future<void> _handleLocateButtonPress() async {
     if (userLocation == null) {
