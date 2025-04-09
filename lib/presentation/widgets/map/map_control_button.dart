@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
 
-/// A single control button for map interactions
+/// A control button for map interactions
 ///
 /// Features:
-/// - Consistent size and tap area
+/// - Consistent styling for all map controls
 /// - Tooltip for accessibility
-/// - Accent color option for important actions
-/// - Ink effects for interactive feedback
+/// - Ripple effect feedback
+/// - Support for accent color highlighting
 class MapControlButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
   final String tooltip;
   final bool useAccentColor;
+  final double size;
   
   const MapControlButton({
     Key? key,
@@ -21,6 +22,7 @@ class MapControlButton extends StatelessWidget {
     required this.onPressed,
     required this.tooltip,
     this.useAccentColor = false,
+    this.size = 42.0,
   }) : super(key: key);
   
   @override
@@ -31,8 +33,8 @@ class MapControlButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
         child: SizedBox(
-          width: 42,
-          height: 42,
+          width: size,
+          height: size,
           child: Tooltip(
             message: tooltip,
             child: Icon(
