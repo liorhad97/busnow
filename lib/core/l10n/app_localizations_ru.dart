@@ -71,6 +71,16 @@ class AppLocalizationsRu implements AppLocalizations {
   
   @override
   String get detailsMessage => 'Выберите автобусную остановку, чтобы посмотреть расписание';
+  
+  // ====================== Map Controls ======================
+  @override
+  String get zoomIn => 'Приблизить';
+  
+  @override
+  String get zoomOut => 'Отдалить';
+  
+  @override
+  String get myLocation => 'Моё местоположение';
 
   // Language settings
   @override
