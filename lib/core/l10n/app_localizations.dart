@@ -55,6 +55,11 @@ abstract class AppLocalizations {
   String get success;
   String get error;
   String get detailsMessage;
+  
+  // ====================== Map Controls ======================
+  String get zoomIn;
+  String get zoomOut;
+  String get myLocation;
 
   /// Language control texts
   String get languageSettings;
