@@ -1,6 +1,6 @@
+import 'package:busnow/core/constants/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
-import 'package:busnow/core/constants/dimensions.dart';
 import 'package:busnow/core/constants/dir/lottie_dir.dart';
 import 'package:lottie/lottie.dart';
 
@@ -89,68 +89,48 @@ class _GroupedBlinkingTimeDisplayState extends State<GroupedBlinkingTimeDisplay>
   ) {
     final theme = Theme.of(context);
     // Use green color for earliest time and black for other times
-    final color = isEarliest ? AppColors.busEarlyColor : Colors.black;
 
     return Padding(
       padding: EdgeInsets.only(right: hasNext ? 4.0 : 0.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Base container with time text
-          AnimatedBuilder(
-            animation: _blinkController,
-            builder: (context, child) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                  vertical: 4.0,
-                ),
-                decoration: BoxDecoration(
-                  color:
-                      isEarliest
-                          ? AppColors.busEarlyColor.withOpacity(
-                            0.1 + (_blinkController.value * 0.15),
-                          )
-                          : Colors.grey.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(
-                    AppDimensions.borderRadiusSmall,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color:
+              isEarliest
+                  ? AppColors.busEarlyColor.withOpacity(
+                    0.1 + (_blinkController.value * 0.15),
+                  )
+                  : Colors.grey.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+        ),
+        child: Row(
+          children: [
+            // Text on top for readability
+            Text(
+              "${minutes}m",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 14.0, // Bigger font size
+                fontWeight: isEarliest ? FontWeight.bold : FontWeight.normal,
+                color: isEarliest ? AppColors.busEarlyColor : Colors.black87,
+              ),
+            ),
+
+            // Lottie animation behind the text, tilted 45 degrees
+            if (isEarliest)
+              SizedBox(
+                width: 20.0,
+                height: 20.0,
+                child: Transform.rotate(
+                  angle: 45 * 3.14159 / 180, // 45 degrees in radians
+                  child: Lottie.asset(
+                    LottieDir.wifi,
+                    animate: true,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Text(
-                      "${minutes}m",
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 14.0, // Bigger font size
-                        fontWeight:
-                            isEarliest ? FontWeight.bold : FontWeight.normal,
-                        color:
-                            isEarliest
-                                ? AppColors.busEarlyColor
-                                : Colors.black87,
-                      ),
-                    ),
-                    if (isEarliest)
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Transform.rotate(
-                          angle: 45 * 3.14159 / 180, // 45 degrees in radians
-                          child: Lottie.asset(
-                            LottieDir.wifi,
-                            animate: true,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-
-          // Lottie animation for earliest time, placed next to the time and rotated 45 degrees
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }
