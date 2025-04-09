@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 class EnhancedBottomSheet extends StatefulWidget {
   final Animation<double> animation;
   final BusStop? selectedBusStop;
+  final List<BusStop> nearbyBusStops; // Add this line
   final BusScheduleStateStatus status;
   final List<BusSchedule> busSchedules;
   final Map<String, int> earliestTimes;
@@ -25,13 +26,13 @@ class EnhancedBottomSheet extends StatefulWidget {
     Key? key,
     required this.animation,
     required this.selectedBusStop,
+    this.nearbyBusStops = const [], // Add this line with default value
     required this.status,
     required this.busSchedules,
     required this.earliestTimes,
     required this.onClose,
     required this.onRefresh,
   }) : super(key: key);
-
   @override
   State<EnhancedBottomSheet> createState() => _EnhancedBottomSheetState();
 }
@@ -82,6 +83,21 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
         });
       }
     });
+  }
+
+  // Add this method to _EnhancedBottomSheetState class
+  String _getSheetTitle() {
+    if (widget.nearbyBusStops.isEmpty) {
+      return widget.selectedBusStop?.name ?? "No Bus Stop Selected";
+    }
+
+    // Combine names of nearby bus stops
+    final stopNames = widget.nearbyBusStops.map((stop) => stop.name).toList();
+    if (stopNames.length > 2) {
+      return "${stopNames[0]} + ${stopNames[1]} + ...";
+    } else {
+      return stopNames.join(" + ");
+    }
   }
 
   void _onSheetAnimationChanged() {
@@ -486,7 +502,7 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.selectedBusStop!.name,
+                        _getSheetTitle(), // Replace widget.selectedBusStop!.name with this
                         style: theme.textTheme.headlineSmall,
                         overflow: TextOverflow.ellipsis,
                       ),

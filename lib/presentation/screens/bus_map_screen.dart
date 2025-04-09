@@ -810,6 +810,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
             ),
 
             // Bottom sheet with custom implementation
+            // Bottom sheet with custom implementation
             AnimatedBuilder(
               animation: _bottomSheetController,
               builder: (context, child) {
@@ -852,6 +853,8 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
                     child: EnhancedBottomSheet(
                       animation: _bottomSheetController,
                       selectedBusStop: selectedBusStop,
+                      nearbyBusStops:
+                          busScheduleState.nearbyBusStops, // Add this line
                       status: status,
                       busSchedules: busSchedules,
                       earliestTimes: busScheduleState.getEarliestArrivalTimes(),
