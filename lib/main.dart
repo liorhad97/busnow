@@ -1,7 +1,10 @@
+import 'package:busnow/core/localization/app_localizations.dart';
+import 'package:busnow/core/providers/language_provider.dart';
 import 'package:busnow/core/themes/app_theme.dart';
 import 'package:busnow/presentation/screens/bus_map_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -49,17 +52,44 @@ Future<void> _configureApp() async {
   // <string>This app needs access to location to find nearby bus stops.</string>
 }
 
-class BusTrackingApp extends StatelessWidget {
+class BusTrackingApp extends ConsumerWidget {
   const BusTrackingApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch for changes in language
+    final locale = ref.watch(localeProvider);
+    final textDirection = ref.watch(textDirectionProvider);
+
     return MaterialApp(
       title: 'BusNow',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.getTheme(Brightness.light),
       darkTheme: AppTheme.getTheme(Brightness.dark),
       themeMode: ThemeMode.system,
+      
+      // Set up localization
+      locale: locale,
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('he'), // Hebrew
+        Locale('ar'), // Arabic
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      
+      // Set LTR/RTL text direction
+      builder: (context, child) {
+        return Directionality(
+          textDirection: textDirection,
+          child: child!,
+        );
+      },
+      
       home: const BusMapScreen(),
     );
   }
