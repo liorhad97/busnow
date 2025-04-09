@@ -71,6 +71,16 @@ class AppLocalizationsEn implements AppLocalizations {
   
   @override
   String get detailsMessage => 'Select a bus stop to view schedules';
+  
+  // ====================== Map Controls ======================
+  @override
+  String get zoomIn => 'Zoom in';
+  
+  @override
+  String get zoomOut => 'Zoom out';
+  
+  @override
+  String get myLocation => 'My location';
 
   // Language settings
   @override
