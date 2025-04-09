@@ -71,6 +71,16 @@ class AppLocalizationsHe implements AppLocalizations {
   
   @override
   String get detailsMessage => 'בחר תחנת אוטובוס כדי לצפות בלוחות הזמנים';
+  
+  // ====================== Map Controls ======================
+  @override
+  String get zoomIn => 'התקרב';
+  
+  @override
+  String get zoomOut => 'התרחק';
+  
+  @override
+  String get myLocation => 'המיקום שלי';
 
   // Language settings
   @override
