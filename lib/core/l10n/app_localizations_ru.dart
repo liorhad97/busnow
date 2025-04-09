@@ -81,6 +81,19 @@ class AppLocalizationsRu implements AppLocalizations {
   
   @override
   String get myLocation => 'Моё местоположение';
+  
+  // ====================== Error Messages ======================
+  @override
+  String get loadBusStopsError => 'Ошибка при загрузке автобусных остановок';
+  
+  @override
+  String get loadBusSchedulesError => 'Ошибка при загрузке расписания автобусов';
+  
+  @override
+  String get noStopSelected => 'Не выбрана автобусная остановка';
+  
+  @override
+  String get andMore => 'и другие';
 
   // Language settings
   @override
