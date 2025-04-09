@@ -1,7 +1,7 @@
 import 'package:busnow/core/themes/app_theme.dart';
 import 'package:busnow/core/providers/locale_provider.dart';
 import 'package:busnow/core/l10n/app_localizations.dart';
-import 'package:busnow/presentation/screens/bus_map_screen.dart';
+import 'package:busnow/presentation/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -77,7 +77,8 @@ class BusTrackingApp extends ConsumerWidget {
           child: child!,
         );
       },
-      home: const BusMapScreen(),
+      // Start with the splash screen instead of directly going to the map
+      home: const SplashScreen(),
     );
   }
 }
