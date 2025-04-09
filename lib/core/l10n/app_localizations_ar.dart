@@ -81,6 +81,19 @@ class AppLocalizationsAr implements AppLocalizations {
   
   @override
   String get myLocation => 'موقعي';
+  
+  // ====================== Error Messages ======================
+  @override
+  String get loadBusStopsError => 'فشل في تحميل محطات الحافلات';
+  
+  @override
+  String get loadBusSchedulesError => 'فشل في تحميل جداول الحافلات';
+  
+  @override
+  String get noStopSelected => 'لم يتم تحديد محطة حافلة';
+  
+  @override
+  String get andMore => 'والمزيد';
 
   // Language settings
   @override
