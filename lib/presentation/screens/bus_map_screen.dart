@@ -14,6 +14,7 @@ import 'package:busnow/presentation/screens/bus_map/map_view.dart';
 import 'package:busnow/presentation/screens/bus_map/bottom_sheet_view.dart';
 import 'package:busnow/presentation/screens/bus_map/map_controls_view.dart';
 import 'package:busnow/presentation/widgets/app_drawer.dart';
+import 'package:busnow/presentation/screens/language_settings_screen.dart';
 
 /// The main map screen where users can see bus stops and their schedules
 ///
