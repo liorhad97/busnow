@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/presentation/widgets/animations/animation_types.dart';
+import 'package:busnow/presentation/widgets/animations/loading_indicator_painter.dart';
 
 /// A beautifully designed animated loading indicator
 ///
@@ -25,12 +27,6 @@ class AnimatedLoadingIndicator extends StatefulWidget {
 
   @override
   State<AnimatedLoadingIndicator> createState() => _AnimatedLoadingIndicatorState();
-}
-
-enum AnimationType {
-  pulse,
-  rotate,
-  bounce
 }
 
 class _AnimatedLoadingIndicatorState extends State<AnimatedLoadingIndicator>
@@ -125,6 +121,8 @@ class _AnimatedLoadingIndicatorState extends State<AnimatedLoadingIndicator>
                       child: _buildIndicator(indicatorColor),
                     );
                     break;
+                  default:
+                    indicator = _buildIndicator(indicatorColor);
                 }
 
                 return indicator;
@@ -144,142 +142,16 @@ class _AnimatedLoadingIndicatorState extends State<AnimatedLoadingIndicator>
                 ),
               ),
             ],
-      ],),),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildIndicator(Color color) {
-    return Container(
-      width: widget.size,
-      height: widget.size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withBlue((color.blue + 20).clamp(0, 255)),
-          ],
-          center: const Alignment(0.2, 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 12,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: widget.size * 0.7,
-          height: widget.size * 0.7,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withOpacity(0.8),
-              width: 3,
-            ),
-          ),
-          child: Center(
-            child: Container(
-              width: widget.size * 0.4,
-              height: widget.size * 0.4,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.8),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A minimal, elegant progress indicator for inline use
-class InlineLoadingIndicator extends StatefulWidget {
-  final double height;
-  final Color? color;
-  final double width;
-
-  const InlineLoadingIndicator({
-    Key? key,
-    this.height = 2.0,
-    this.width = 60.0,
-    this.color,
-  }) : super(key: key);
-
-  @override
-  State<InlineLoadingIndicator> createState() => _InlineLoadingIndicatorState();
-}
-
-class _InlineLoadingIndicatorState extends State<InlineLoadingIndicator>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  bool _isActive = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _isActive = false;
-    _controller.stop();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Color indicatorColor = widget.color ?? AppColors.primary;
-
-    // Only build animation if widget is active
-    if (!_isActive) {
-      return SizedBox(width: widget.width, height: widget.height);
-    }
-
-    return Container(
-      width: widget.width,
-      height: widget.height,
-      decoration: BoxDecoration(
-        color: indicatorColor.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(widget.height),
-      ),
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          // Check again inside the AnimatedBuilder to ensure it's still active
-          if (!_isActive) return const SizedBox();
-          
-          return Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              width: widget.width * 0.4,
-              height: widget.height,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    indicatorColor.withOpacity(0.0),
-                    indicatorColor,
-                    indicatorColor.withOpacity(0.0),
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
-                ),
-                borderRadius: BorderRadius.circular(widget.height),
-              ),
-              margin: EdgeInsets.only(
-                left: (_controller.value * widget.width * 1.2) - (widget.width * 0.4),
-              ),
-            ),
-          );
-        },
-      ),
+    return CustomPaint(
+      size: Size(widget.size, widget.size),
+      painter: LoadingIndicatorPainter(color: color),
     );
   }
 }

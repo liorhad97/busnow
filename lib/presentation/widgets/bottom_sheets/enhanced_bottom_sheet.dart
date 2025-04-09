@@ -44,7 +44,7 @@ class EnhancedBottomSheet extends StatefulWidget {
     required this.onClose,
     required this.onRefresh,
   }) : super(key: key);
-  
+
   @override
   State<EnhancedBottomSheet> createState() => _EnhancedBottomSheetState();
 }
@@ -246,7 +246,8 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                     // Pull handle with animated indicator
                     BottomSheetHandle(
                       animation: widget.animation,
-                      onTap: widget.animation.value >= 0.9 ? _handleClose : null,
+                      onTap:
+                          widget.animation.value >= 0.9 ? _handleClose : null,
                     ),
 
                     // Expanded content area with animations
@@ -258,9 +259,9 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
                         child:
                             widget.selectedBusStop == null
                                 ? EmptyStateView(
-                                    icon: Icons.touch_app_rounded,
-                                    message: "Tap on a bus stop to see schedules",
-                                  )
+                                  icon: Icons.touch_app_rounded,
+                                  message: "Tap on a bus stop to see schedules",
+                                )
                                 : _buildContentArea(theme),
                       ),
                     ),
@@ -360,20 +361,25 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
 
         // Bus schedule list with loading state and empty state handling
         Expanded(
-          child: widget.status == BusScheduleStateStatus.loading
-              ? LoadingStateView(message: "Finding buses...")
-              : widget.busSchedules.isEmpty
+          child:
+              widget.status == BusScheduleStateStatus.loading
+                  ? LoadingStateView(message: "Finding buses...")
+                  : widget.busSchedules.isEmpty
                   ? EmptyStateView(
-                      icon: Icons.directions_bus_outlined,
-                      message: "No buses yet—check back soon!",
-                      actionLabel: "Tap refresh to check again",
-                    )
+                    icon: Icons.directions_bus_outlined,
+                    message: "No buses yet—check back soon!",
+                    actionLabel: "Tap refresh to check again",
+                  )
                   : BusScheduleListView(
-                      scrollController: _scrollController,
-                      contentAnimation: _contentAnimationController,
-                      busSchedules: widget.busSchedules,
-                      earliestTimes: widget.earliestTimes,
-                    ),
+                    scrollController: _scrollController,
+                    contentAnimation: _contentAnimationController,
+                    scheduleGroups:
+                        widget.selectedBusStop != null
+                            ? BusScheduleState(
+                              busSchedules: widget.busSchedules,
+                            ).getGroupedSchedules()
+                            : [],
+                  ),
         ),
       ],
     );

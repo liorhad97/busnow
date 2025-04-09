@@ -45,28 +45,28 @@ class AnimatedMapControls extends StatelessWidget {
             onPressed: onZoomIn,
             tooltip: 'Zoom in',
           ),
-          
+
           // Divider
           Divider(
             height: 1,
             thickness: 1,
             color: Theme.of(context).dividerColor.withOpacity(0.2),
           ),
-          
+
           // Zoom out button
           _buildControlButton(
             icon: Icons.remove,
             onPressed: onZoomOut,
             tooltip: 'Zoom out',
           ),
-          
+
           // Divider
           Divider(
             height: 1,
             thickness: 1,
             color: Theme.of(context).dividerColor.withOpacity(0.2),
           ),
-          
+
           // Locate user button
           _buildControlButton(
             icon: Icons.my_location,

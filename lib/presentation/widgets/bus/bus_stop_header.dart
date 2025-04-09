@@ -1,8 +1,8 @@
+import 'package:busnow/presentation/widgets/bus/bus_refresh_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
-import 'package:busnow/presentation/widgets/common/bus_refresh_button.dart';
 
 /// Header for displaying bus stop information with animations
 ///
@@ -17,7 +17,7 @@ class BusStopHeader extends StatelessWidget {
   final int busCount;
   final VoidCallback onRefresh;
   final bool isLoading;
-  
+
   const BusStopHeader({
     Key? key,
     required this.animation,
@@ -26,20 +26,17 @@ class BusStopHeader extends StatelessWidget {
     required this.onRefresh,
     this.isLoading = false,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, 20 * (1 - animation.value)),
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: animation.value, child: child),
         );
       },
       child: Padding(
@@ -112,8 +109,9 @@ class BusStopHeader extends StatelessWidget {
                       Icon(
                         Icons.access_time_rounded,
                         size: 12,
-                        color: theme.textTheme.bodySmall?.color
-                            ?.withOpacity(0.7),
+                        color: theme.textTheme.bodySmall?.color?.withOpacity(
+                          0.7,
+                        ),
                       ),
 
                       const SizedBox(width: 2),
@@ -121,9 +119,19 @@ class BusStopHeader extends StatelessWidget {
                       Text(
                         "Live Updates",
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color
-                              ?.withOpacity(0.7),
+                          color: theme.textTheme.bodySmall?.color?.withOpacity(
+                            0.7,
+                          ),
                         ),
+                      ),
+                      Spacer(),
+                      BusRefreshButton(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          onRefresh();
+                        },
+                        isLoading: isLoading,
+                        enableHaptics: true,
                       ),
                     ],
                   ),
@@ -132,14 +140,6 @@ class BusStopHeader extends StatelessWidget {
             ),
 
             // Refresh button with haptic feedback
-            BusRefreshButton(
-              onPressed: () {
-                HapticFeedback.mediumImpact();
-                onRefresh();
-              },
-              isLoading: isLoading,
-              enableHaptics: true,
-            ),
           ],
         ),
       ),

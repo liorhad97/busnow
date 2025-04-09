@@ -4,6 +4,7 @@ import '../../data/datasources/local_data_source.dart';
 import '../../data/repositories/bus_schedule_repository_impl.dart';
 import '../../domain/models/bus_schedule_model.dart';
 import '../../domain/models/bus_stop_model.dart';
+import '../../domain/models/bus_schedule_group_model.dart';
 import '../../domain/repositories/repository_interface.dart';
 
 // Repository providers
@@ -73,6 +74,45 @@ class BusScheduleState {
     }
 
     return earliestTimes;
+  }
+
+  // Helper method to group bus schedules by bus number
+  List<BusScheduleGroup> getGroupedSchedules() {
+    // Group schedules by bus number
+    final Map<String, List<BusSchedule>> groupedMap = {};
+    for (var schedule in busSchedules) {
+      if (!groupedMap.containsKey(schedule.busNumber)) {
+        groupedMap[schedule.busNumber] = [];
+      }
+      groupedMap[schedule.busNumber]!.add(schedule);
+    }
+
+    // Convert map to list of BusScheduleGroup objects
+    final List<BusScheduleGroup> result = [];
+    groupedMap.forEach((busNumber, schedules) {
+      // Sort schedules by arrival time
+      schedules.sort(
+        (a, b) => a.arrivalTimeInMinutes.compareTo(b.arrivalTimeInMinutes),
+      );
+
+      // Use the destination of the earliest bus (they should be the same for the same route)
+      final destination = schedules.first.destination;
+
+      result.add(
+        BusScheduleGroup(
+          busNumber: busNumber,
+          destination: destination,
+          schedules: schedules,
+        ),
+      );
+    });
+
+    // Sort groups by earliest arrival time
+    result.sort(
+      (a, b) => a.earliestArrivalTime.compareTo(b.earliestArrivalTime),
+    );
+
+    return result;
   }
 }
 
