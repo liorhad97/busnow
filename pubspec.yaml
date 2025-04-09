@@ -39,6 +39,9 @@ dependencies:
   geolocator: 
   lottie: 
   platform_maps_flutter:
+  shared_preferences: 
+  flutter_localizations:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -74,6 +77,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/animations/lottie/
+    - assets/i18n/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

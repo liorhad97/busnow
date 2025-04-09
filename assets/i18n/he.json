@@ -1,0 +1,22 @@
+{
+  "app_name": "BusNow",
+  "settings": "הגדרות",
+  "language": "שפה",
+  "direction": "כיוון",
+  "ltr": "משמאל לימין",
+  "rtl": "מימין לשמאל",
+  "search_hint": "חפש תחנת אוטובוס",
+  "my_location": "המיקום שלי",
+  "nearby_stops": "תחנות קרובות",
+  "schedule": "לוח זמנים",
+  "route": "מסלול",
+  "arrival_time": "זמן הגעה",
+  "departure_time": "זמן יציאה",
+  "distance": "מרחק",
+  "loading": "טוען...",
+  "error_loading": "שגיאה בטעינת נתונים",
+  "try_again": "נסה שוב",
+  "no_results": "לא נמצאו תוצאות",
+  "permissions_needed": "נדרשת הרשאת מיקום",
+  "grant_permission": "אשר הרשאה"
+}

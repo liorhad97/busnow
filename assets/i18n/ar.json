@@ -1,0 +1,22 @@
+{
+  "app_name": "BusNow",
+  "settings": "إعدادات",
+  "language": "لغة",
+  "direction": "اتجاه",
+  "ltr": "من اليسار إلى اليمين",
+  "rtl": "من اليمين إلى اليسار",
+  "search_hint": "ابحث عن موقف حافلة",
+  "my_location": "موقعي",
+  "nearby_stops": "مواقف قريبة",
+  "schedule": "جدول زمني",
+  "route": "مسار",
+  "arrival_time": "وقت الوصول",
+  "departure_time": "وقت المغادرة",
+  "distance": "المسافة",
+  "loading": "جاري التحميل...",
+  "error_loading": "خطأ في تحميل البيانات",
+  "try_again": "حاول مرة أخرى",
+  "no_results": "لم يتم العثور على نتائج",
+  "permissions_needed": "مطلوب أذونات الموقع",
+  "grant_permission": "منح الإذن"
+}

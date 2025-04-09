@@ -1,0 +1,22 @@
+{
+  "app_name": "BusNow",
+  "settings": "Settings",
+  "language": "Language",
+  "direction": "Direction",
+  "ltr": "Left to Right",
+  "rtl": "Right to Left",
+  "search_hint": "Search for a bus stop",
+  "my_location": "My Location",
+  "nearby_stops": "Nearby Stops",
+  "schedule": "Schedule",
+  "route": "Route",
+  "arrival_time": "Arrival Time",
+  "departure_time": "Departure Time",
+  "distance": "Distance",
+  "loading": "Loading...",
+  "error_loading": "Error loading data",
+  "try_again": "Try Again",
+  "no_results": "No Results Found",
+  "permissions_needed": "Location permissions needed",
+  "grant_permission": "Grant Permission"
+}
