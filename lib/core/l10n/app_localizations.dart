@@ -54,6 +54,7 @@ abstract class AppLocalizations {
   String get loading;
   String get success;
   String get error;
+  String get detailsMessage;
 
   /// Language control texts
   String get languageSettings;
