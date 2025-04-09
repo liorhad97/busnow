@@ -5,13 +5,13 @@ import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
 import 'package:busnow/presentation/widgets/map/map_control_button.dart';
 
-/// A panel of controls for map interactions
+/// A panel of map control buttons for zoom and location functionality
 ///
 /// Features:
-/// - Zoom in/out buttons
-/// - User location button with accent color
-/// - Elegant container with shadow and rounded corners
-/// - Haptic feedback for better user experience
+/// - Zoom in/out controls with visual separation
+/// - My location button with accent color
+/// - Haptic feedback on interactions
+/// - Shadow and rounded container for visual depth
 class MapControlsPanel extends StatelessWidget {
   final PlatformMapController? mapController;
   final LatLng userLocation;
