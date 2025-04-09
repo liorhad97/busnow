@@ -8,6 +8,7 @@ import 'package:busnow/domain/models/bus_stop_model.dart';
 import 'package:busnow/presentation/mixins/bottom_sheet_controller_mixin.dart';
 import 'package:busnow/presentation/mixins/map_controller_mixin.dart';
 import 'package:busnow/presentation/providers/bus_providers.dart';
+import 'package:busnow/presentation/providers/localized_bus_provider.dart';
 import 'package:busnow/presentation/utils/map/bus_stop_detector.dart';
 import 'package:busnow/presentation/utils/map_markers_manager.dart';
 import 'package:busnow/presentation/screens/bus_map/map_view.dart';
@@ -66,7 +67,8 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
 
     // Load bus stop data after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(busScheduleProvider.notifier).loadBusStops();
+      final l10n = ref.read(localizedBusMessagesProvider(context));
+      ref.read(busScheduleProvider.notifier).loadBusStops(l10n: l10n);
 
       // Set up a listener to monitor when bus stops are loaded
       ref.listenManual(busScheduleProvider, (previous, next) {
@@ -120,7 +122,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
       // Find and navigate to closest bus stop
       await _navigateToClosestBusStop();
     } catch (e) {
-      print('Error during initial navigation: $e');
+      debugPrint('Error during initial navigation: $e');
     }
   }
 
@@ -154,7 +156,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         HapticFeedback.mediumImpact();
       }
     } catch (e) {
-      print('Error navigating to closest bus stop: $e');
+      debugPrint('Error navigating to closest bus stop: $e');
     }
   }
 
@@ -206,10 +208,13 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         );
 
         if (areDifferent) {
+          // Get localized messages
+          final l10n = ref.read(localizedBusMessagesProvider(context));
+          
           // Load schedules for all nearby stops
           ref
               .read(busScheduleProvider.notifier)
-              .selectNearbyBusStops(nearbyStops);
+              .selectNearbyBusStops(nearbyStops, l10n: l10n);
 
           // Show bottom sheet and gradient
           expandBottomSheet();
@@ -220,7 +225,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         }
       }
     } catch (e) {
-      print('Error in bus stop detection: $e');
+      debugPrint('Error in bus stop detection: $e');
     }
   }
 
