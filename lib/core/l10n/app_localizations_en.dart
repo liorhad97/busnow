@@ -1,0 +1,84 @@
+import 'app_localizations.dart';
+
+/// English translations
+class AppLocalizationsEn implements AppLocalizations {
+  // ====================== General ======================
+  @override
+  String get appTitle => 'BusNow';
+
+  @override
+  String get welcomeMessage => 'Welcome to BusNow!';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get chooseYourLanguage => 'Choose your language';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get details => 'Details';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get continue_ => 'Continue';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get finish => 'Finish';
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get success => 'Success';
+
+  @override
+  String get error => 'Error';
+
+  // Language settings
+  @override
+  String get languageSettings => 'Language Settings';
+
+  @override
+  String get englishLanguage => 'English';
+
+  @override
+  String get hebrewLanguage => 'Hebrew';
+
+  @override
+  String get systemLanguage => 'System Default';
+}
