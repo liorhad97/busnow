@@ -81,6 +81,19 @@ class AppLocalizationsEs implements AppLocalizations {
   
   @override
   String get myLocation => 'Mi ubicación';
+  
+  // ====================== Error Messages ======================
+  @override
+  String get loadBusStopsError => 'Error al cargar las paradas de autobús';
+  
+  @override
+  String get loadBusSchedulesError => 'Error al cargar los horarios de autobús';
+  
+  @override
+  String get noStopSelected => 'Ninguna parada de autobús seleccionada';
+  
+  @override
+  String get andMore => 'y más';
 
   // Language settings
   @override
