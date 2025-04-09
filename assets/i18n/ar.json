@@ -23,5 +23,17 @@
   "tap_to_see_schedules": "اضغط على موقف حافلة لمشاهدة الجداول",
   "finding_buses": "جاري البحث عن الحافلات...",
   "no_buses_yet": "لا يوجد حافلات بعد - تحقق مرة أخرى قريبا!",
-  "tap_refresh": "اضغط على تحديث للتحقق مرة أخرى"
+  "tap_refresh": "اضغط على تحديث للتحقق مرة أخرى",
+  "refresh": "تحديث",
+  "zoom_in": "تكبير",
+  "zoom_out": "تصغير",
+  "language_settings": "إعدادات اللغة",
+  "appearance": "المظهر",
+  "theme": "سمة",
+  "light": "فاتح",
+  "dark": "داكن",
+  "system": "النظام",
+  "select_language": "اختر لغة",
+  "back": "رجوع",
+  "save": "حفظ"
 }

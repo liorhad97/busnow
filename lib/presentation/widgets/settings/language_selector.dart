@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:busnow/core/config/language_config.dart';
+import 'package:busnow/core/localization/app_localizations.dart';
 import 'package:busnow/core/providers/app_providers.dart';
 import 'package:busnow/core/constants/dimensions.dart';
-import 'package:busnow/core/localization/app_localizations.dart';
 
 /// A widget for selecting the app language
 class LanguageSelector extends ConsumerWidget {
@@ -24,7 +24,7 @@ class LanguageSelector extends ConsumerWidget {
             vertical: AppDimensions.spacingSmall,
           ),
           child: Text(
-            localizations.translate('language'),
+            localizations.translate('select_language'),
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
@@ -47,7 +47,9 @@ class LanguageSelector extends ConsumerWidget {
     {required bool isSelected, required VoidCallback onLanguageSelected}
   ) {
     final localizations = AppLocalizations.of(context);
-    final directionText = language.isLtr ? localizations.translate('ltr') : localizations.translate('rtl');
+    final directionText = language.isLtr 
+        ? localizations.translate('ltr') 
+        : localizations.translate('rtl');
     
     return ListTile(
       title: Text(

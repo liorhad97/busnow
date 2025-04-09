@@ -28,9 +28,22 @@ class SettingsScreen extends ConsumerWidget {
             // Language selector section
             Card(
               margin: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimensions.spacingSmall),
-                child: LanguageSelector(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(AppDimensions.spacingMedium),
+                    child: Text(
+                      localizations.translate('language_settings'),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.all(AppDimensions.spacingSmall),
+                    child: LanguageSelector(),
+                  ),
+                ],
               ),
             ),
             
