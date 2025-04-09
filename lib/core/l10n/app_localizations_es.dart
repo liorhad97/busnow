@@ -68,6 +68,19 @@ class AppLocalizationsEs implements AppLocalizations {
 
   @override
   String get error => 'Error';
+  
+  @override
+  String get detailsMessage => 'Seleccione una parada de autobús para ver los horarios';
+  
+  // ====================== Map Controls ======================
+  @override
+  String get zoomIn => 'Acercar';
+  
+  @override
+  String get zoomOut => 'Alejar';
+  
+  @override
+  String get myLocation => 'Mi ubicación';
 
   // Language settings
   @override
