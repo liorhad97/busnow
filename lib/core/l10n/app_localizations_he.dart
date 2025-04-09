@@ -78,6 +78,15 @@ class AppLocalizationsHe implements AppLocalizations {
 
   @override
   String get hebrewLanguage => 'עברית';
+  
+  @override
+  String get arabicLanguage => 'ערבית';
+  
+  @override
+  String get spanishLanguage => 'ספרדית';
+  
+  @override
+  String get russianLanguage => 'רוסית';
 
   @override
   String get systemLanguage => 'ברירת מחדל של המערכת';

@@ -6,6 +6,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_localizations_en.dart';
 import 'app_localizations_he.dart';
+import 'app_localizations_ar.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_ru.dart';
 
 /// The class responsible for managing localized resources
 abstract class AppLocalizations {
@@ -19,6 +22,9 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = [
     Locale('en'), // English
     Locale('he'), // Hebrew
+    Locale('ar'), // Arabic
+    Locale('es'), // Spanish
+    Locale('ru'), // Russian
   ];
 
   static AppLocalizations of(BuildContext context) {
@@ -53,6 +59,9 @@ abstract class AppLocalizations {
   String get languageSettings;
   String get englishLanguage;
   String get hebrewLanguage;
+  String get arabicLanguage;
+  String get spanishLanguage;
+  String get russianLanguage;
   String get systemLanguage;
 }
 
@@ -62,7 +71,7 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
 
   @override
   bool isSupported(Locale locale) {
-    return ['en', 'he'].contains(locale.languageCode);
+    return ['en', 'he', 'ar', 'es', 'ru'].contains(locale.languageCode);
   }
 
   @override
@@ -78,10 +87,14 @@ AppLocalizations _lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'he':
       return AppLocalizationsHe();
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'ru':
+      return AppLocalizationsRu();
     case 'en':
     default:
       return AppLocalizationsEn();
   }
 }
-
-/// The delegate responsible for loading localizations

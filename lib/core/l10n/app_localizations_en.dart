@@ -78,6 +78,15 @@ class AppLocalizationsEn implements AppLocalizations {
 
   @override
   String get hebrewLanguage => 'Hebrew';
+  
+  @override
+  String get arabicLanguage => 'Arabic';
+  
+  @override
+  String get spanishLanguage => 'Spanish';
+  
+  @override
+  String get russianLanguage => 'Russian';
 
   @override
   String get systemLanguage => 'System Default';
