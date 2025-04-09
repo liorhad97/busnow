@@ -1,7 +1,7 @@
+import 'package:busnow/presentation/widgets/bus/bus_schedule_item.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/dimensions.dart';
 import 'package:busnow/domain/models/bus_schedule_model.dart';
-import 'package:busnow/presentation/widgets/bus/bus_schedule_item.dart';
 
 /// A beautifully animated list of bus schedules
 ///
@@ -15,7 +15,7 @@ class BusScheduleListView extends StatelessWidget {
   final Animation<double> contentAnimation;
   final List<BusSchedule> busSchedules;
   final Map<String, int> earliestTimes;
-  
+
   const BusScheduleListView({
     Key? key,
     required this.scrollController,
@@ -29,10 +29,7 @@ class BusScheduleListView extends StatelessWidget {
     return AnimatedBuilder(
       animation: contentAnimation,
       builder: (context, child) {
-        return Opacity(
-          opacity: contentAnimation.value,
-          child: child,
-        );
+        return Opacity(opacity: contentAnimation.value, child: child);
       },
       child: ListView.builder(
         controller: scrollController,
@@ -46,7 +43,9 @@ class BusScheduleListView extends StatelessWidget {
         itemCount: busSchedules.length,
         itemBuilder: (context, index) {
           final schedule = busSchedules[index];
-          final isEarliest = earliestTimes[schedule.busNumber] == schedule.arrivalTimeInMinutes;
+          final isEarliest =
+              earliestTimes[schedule.busNumber] ==
+              schedule.arrivalTimeInMinutes;
 
           // Create a staggered animation for each item
           return TweenAnimationBuilder<double>(

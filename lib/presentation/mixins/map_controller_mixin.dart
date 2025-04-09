@@ -14,47 +14,48 @@ import 'package:busnow/domain/models/bus_stop_model.dart';
 /// - Map controller initialization and camera movements
 /// - Distance calculations and bus stop detection
 /// - Map region and visible location utilities
-mixin MapControllerMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin {
+mixin MapControllerMixin<T extends StatefulWidget>
+    on State<T>, TickerProviderStateMixin<T> {
   // The map controller reference
   PlatformMapController? mapController;
-  
+
   // Animation controllers that need to be initialized
   late AnimationController mapFadeController;
   late AnimationController markerPulseController;
-  
+
   // Map state tracking
   bool isMapMoving = false;
   bool isCursorDetectionActive = true;
   LatLng currentMapCenter = const LatLng(0, 0);
   double currentZoom = AppDimensions.mapInitialZoom;
-  
+
   // Default map position as fallback
   static const LatLng defaultPosition = LatLng(37.7749, -122.4194);
-  
+
   // For tracking user location permissions status
   bool locationPermissionChecked = false;
   LocationPermission? locationPermission;
   LatLng? userLocation;
-  
+
   /// Initialize map-related controllers
   void initializeMapControllers() {
     mapFadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
     );
-    
+
     markerPulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: AppDimensions.animDurationLoading),
     )..repeat(reverse: true);
   }
-  
+
   /// Dispose map-related controllers
   void disposeMapControllers() {
     mapFadeController.dispose();
     markerPulseController.dispose();
   }
-  
+
   /// Initialize location services and check for permissions
   Future<void> initializeLocationServices() async {
     try {
@@ -95,38 +96,39 @@ mixin MapControllerMixin<T extends StatefulWidget> on State<T>, TickerProviderSt
       });
     }
   }
-  
+
   /// Show an elegant location permission dialog
   void showLocationPermissionDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Enable Location'),
-        content: const Text(
-          'BusNow needs your location to show nearby bus stops and provide accurate arrival times.',
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            AppDimensions.borderRadiusMedium,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Enable Location'),
+            content: const Text(
+              'BusNow needs your location to show nearby bus stops and provide accurate arrival times.',
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                AppDimensions.borderRadiusMedium,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Not Now'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Permission request will happen after this dialog closes
+                },
+                child: const Text('Enable'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Not Now'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Permission request will happen after this dialog closes
-            },
-            child: const Text('Enable'),
-          ),
-        ],
-      ),
     );
   }
-  
+
   /// Get user's current location
   Future<void> getUserLocation() async {
     try {
@@ -154,12 +156,12 @@ mixin MapControllerMixin<T extends StatefulWidget> on State<T>, TickerProviderSt
       print('Error getting user location: $e');
     }
   }
-  
+
   /// Animate map camera to a specific bus stop
   void animateToStop(BusStop busStop, double bottomSheetValue) {
     // Calculate offset to account for bottom sheet
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // Use the provided bottom sheet value to calculate offset
     final targetPosition = LatLng(
       busStop.latitude - (0.0015 * bottomSheetValue), // Slight offset upward
@@ -178,7 +180,7 @@ mixin MapControllerMixin<T extends StatefulWidget> on State<T>, TickerProviderSt
       ),
     );
   }
-  
+
   /// Calculate distance between two coordinates using the Haversine formula
   /// Returns distance in meters
   double calculateDistanceInMeters(
@@ -209,21 +211,25 @@ mixin MapControllerMixin<T extends StatefulWidget> on State<T>, TickerProviderSt
 
     return distance;
   }
-  
+
   /// Find the closest bus stop to a given location within the visible map region
-  Future<BusStop?> findClosestBusStop(LatLng location, List<BusStop> busStops) async {
+  Future<BusStop?> findClosestBusStop(
+    LatLng location,
+    List<BusStop> busStops,
+  ) async {
     if (mapController == null || busStops.isEmpty) return null;
 
     // Get the visible region bounds from the map controller
     final visibleRegion = await mapController!.getVisibleRegion();
 
     // Filter bus stops to only those visible on screen
-    final visibleBusStops = busStops.where((busStop) {
-      return isLocationVisible(
-        LatLng(busStop.latitude, busStop.longitude),
-        visibleRegion,
-      );
-    }).toList();
+    final visibleBusStops =
+        busStops.where((busStop) {
+          return isLocationVisible(
+            LatLng(busStop.latitude, busStop.longitude),
+            visibleRegion,
+          );
+        }).toList();
 
     // If no visible bus stops, return null
     if (visibleBusStops.isEmpty) return null;
@@ -248,7 +254,7 @@ mixin MapControllerMixin<T extends StatefulWidget> on State<T>, TickerProviderSt
 
     return closest;
   }
-  
+
   /// Check if a location is within the visible map region
   bool isLocationVisible(LatLng location, LatLngBounds visibleRegion) {
     final ne = visibleRegion.northeast;

@@ -1,6 +1,6 @@
+import 'package:busnow/presentation/widgets/animations/animated_time_display.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/dimensions.dart';
-import 'package:busnow/presentation/widgets/animations/animated_time_display.dart';
 
 /// A widget displaying arrival time information
 ///
@@ -12,21 +12,22 @@ import 'package:busnow/presentation/widgets/animations/animated_time_display.dar
 class BusTimeInfo extends StatelessWidget {
   final DateTime? arrivalTime;
   final Color statusColor;
-  
+
   const BusTimeInfo({
     Key? key,
     required this.arrivalTime,
     required this.statusColor,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final minutes = arrivalTime != null 
-        ? arrivalTime!.difference(DateTime.now()).inMinutes 
-        : null;
+    final minutes =
+        arrivalTime != null
+            ? arrivalTime!.difference(DateTime.now()).inMinutes
+            : null;
     final minutesText = minutes != null ? '$minutes min' : '--';
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
       child: Row(
@@ -37,9 +38,9 @@ class BusTimeInfo extends StatelessWidget {
             color: statusColor,
             isCompact: false,
           ),
-          
+
           const SizedBox(width: AppDimensions.spacingMedium),
-          
+
           // Minutes remaining
           Expanded(
             child: Column(
@@ -47,10 +48,7 @@ class BusTimeInfo extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.timer_outlined, 
-                      size: 16, 
-                      color: statusColor,
-                    ),
+                    Icon(Icons.timer_outlined, size: 16, color: statusColor),
                     const SizedBox(width: 4),
                     Text(
                       'Arrives in',

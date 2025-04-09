@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
-import 'package:busnow/presentation/widgets/map_bottom_sheet.dart';
-import 'package:busnow/presentation/widgets/map_center_cursor.dart';
+import 'package:busnow/presentation/widgets/bottom_sheets/enhanced_bottom_sheet.dart';
+import 'package:busnow/presentation/widgets/map/map_center_cursor.dart';
+import 'package:busnow/presentation/widgets/map/map_overlay_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +14,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../domain/models/bus_stop_model.dart';
 import '../providers/bus_providers.dart';
 import '../utils/map_markers_manager.dart';
-import '../widgets/map_overlay_gradient.dart';
-import '../widgets/animated_map_controls.dart';
+import '../widgets/map/animated_map_controls.dart';
 
 class BusMapScreen extends ConsumerStatefulWidget {
   const BusMapScreen({super.key});
@@ -697,39 +696,6 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
             // Map overlay gradient
             MapOverlayGradient(fadeAnimation: _mapFadeController),
 
-            // Refresh button in top right corner
-            // Positioned(
-            //   top:
-            //       MediaQuery.of(context).padding.top +
-            //       AppDimensions.spacingMedium,
-            //   right: AppDimensions.spacingMedium,
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       shape: BoxShape.circle,
-            //       boxShadow: [
-            //         BoxShadow(
-            //           color: Colors.black.withOpacity(0.2),
-            //           blurRadius: 8,
-            //           offset: const Offset(0, 2),
-            //         ),
-            //       ],
-            //     ),
-            //     // child: FloatingActionButton(
-            //     //   heroTag: "refreshButton",
-            //     //   mini: true,
-            //     //   backgroundColor: theme.colorScheme.surface,
-            //     //   elevation: 0,
-            //     //   onPressed: _refreshScreen,
-            //     //   child: Icon(
-            //     //     Icons.refresh_rounded,
-            //     //     color: AppColors.primary,
-            //     //     size: 22,
-            //     //   ),
-            //     // ),
-            //   ),
-            // ),
-
-            // Floating map controls (right side) - using AnimatedPositioned for smoother transitions
             AnimatedPositioned(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,

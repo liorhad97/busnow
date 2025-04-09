@@ -27,7 +27,7 @@ class AnimatedTimeDisplay extends StatefulWidget {
   State<AnimatedTimeDisplay> createState() => _AnimatedTimeDisplayState();
 }
 
-class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay> 
+class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late DateTime _currentTime;
@@ -41,7 +41,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-    
+
     // Update the clock every second
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -66,24 +66,26 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final arrivalTime = widget.arrivalTime ?? _currentTime.add(const Duration(minutes: 15));
+    final arrivalTime =
+        widget.arrivalTime ?? _currentTime.add(const Duration(minutes: 15));
     final timeUntilArrival = arrivalTime.difference(_currentTime);
     final minutesRemaining = timeUntilArrival.inMinutes;
     final secondsRemaining = timeUntilArrival.inSeconds % 60;
-    
+
     // Calculate hand angles
-    final hourAngle = (arrivalTime.hour % 12 + arrivalTime.minute / 60) * (2 * math.pi / 12);
+    final hourAngle =
+        (arrivalTime.hour % 12 + arrivalTime.minute / 60) * (2 * math.pi / 12);
     final minuteAngle = arrivalTime.minute * (2 * math.pi / 60);
-    
+
     if (widget.isCompact) {
       return _buildCompactDisplay(theme, minutesRemaining);
     }
-    
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         final pulseValue = 0.05 * _controller.value;
-        
+
         return Container(
           width: 80,
           height: 100,
@@ -91,12 +93,11 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                widget.color.withOpacity(0.9),
-                widget.color,
-              ],
+              colors: [widget.color.withOpacity(0.9), widget.color],
             ),
-            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+            borderRadius: BorderRadius.circular(
+              AppDimensions.borderRadiusMedium,
+            ),
             boxShadow: [
               BoxShadow(
                 color: widget.color.withOpacity(0.2 + pulseValue),
@@ -140,15 +141,16 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
                             child: Container(
                               width: isHour ? 2 : 1,
                               height: isHour ? 6 : 3,
-                              color: isHour 
-                                  ? Colors.black.withOpacity(0.7) 
-                                  : Colors.black.withOpacity(0.3),
+                              color:
+                                  isHour
+                                      ? Colors.black.withOpacity(0.7)
+                                      : Colors.black.withOpacity(0.3),
                             ),
                           ),
                         ),
                       );
                     }),
-                    
+
                     // Hour hand
                     Transform.rotate(
                       angle: hourAngle,
@@ -166,7 +168,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
                         ),
                       ),
                     ),
-                    
+
                     // Minute hand
                     Transform.rotate(
                       angle: minuteAngle,
@@ -184,7 +186,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
                         ),
                       ),
                     ),
-                    
+
                     // Center dot
                     Container(
                       width: 4,
@@ -197,7 +199,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
                   ],
                 ),
               ),
-              
+
               // Digital time
               Container(
                 margin: const EdgeInsets.only(top: 8, bottom: 4),
@@ -207,7 +209,9 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.borderRadiusSmall,
+                  ),
                 ),
                 child: Text(
                   _formatTime(arrivalTime),
@@ -218,7 +222,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
                   ),
                 ),
               ),
-              
+
               // Remaining minutes
               Text(
                 '$minutesRemaining:${secondsRemaining.toString().padLeft(2, '0')} min',
@@ -234,7 +238,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
       },
     );
   }
-  
+
   Widget _buildCompactDisplay(ThemeData theme, int minutesRemaining) {
     return Row(
       children: [
@@ -245,10 +249,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                widget.color.withOpacity(0.9),
-                widget.color,
-              ],
+              colors: [widget.color.withOpacity(0.9), widget.color],
             ),
             shape: BoxShape.circle,
             boxShadow: [
@@ -273,9 +274,7 @@ class _AnimatedTimeDisplayState extends State<AnimatedTimeDisplay>
         const SizedBox(width: 4),
         Text(
           'min',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: Colors.white,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
         ),
       ],
     );
