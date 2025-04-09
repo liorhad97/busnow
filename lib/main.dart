@@ -1,7 +1,11 @@
+import 'package:busnow/core/config/language_config.dart';
+import 'package:busnow/core/localization/app_localizations.dart';
+import 'package:busnow/core/providers/app_providers.dart';
 import 'package:busnow/core/themes/app_theme.dart';
 import 'package:busnow/presentation/screens/bus_map_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -21,6 +25,9 @@ void main() {
 }
 
 Future<void> _configureApp() async {
+  // Initialize language configuration
+  await LanguageConfig.instance.initializeLanguage();
+  
   // Check if location services are enabled
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
   
@@ -49,17 +56,65 @@ Future<void> _configureApp() async {
   // <string>This app needs access to location to find nearby bus stops.</string>
 }
 
-class BusTrackingApp extends StatelessWidget {
+class BusTrackingApp extends ConsumerWidget {
   const BusTrackingApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Listen for language changes to rebuild the app
+    final appSettings = ref.watch(appSettingsProvider);
+    
+    final languageConfig = LanguageConfig.instance;
+    final locale = languageConfig.locale;
+    final isLtr = appSettings.isLtr;
+
     return MaterialApp(
       title: 'BusNow',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.getTheme(Brightness.light),
       darkTheme: AppTheme.getTheme(Brightness.dark),
       themeMode: ThemeMode.system,
+      locale: locale,
+      
+      // Set text direction based on language
+      builder: (context, child) {
+        return Directionality(
+          textDirection: isLtr ? TextDirection.ltr : TextDirection.rtl,
+          child: child!,
+        );
+      },
+      
+      // Configure localization
+      supportedLocales: [
+        const Locale('en'), // English
+        const Locale('he'), // Hebrew
+        const Locale('ar'), // Arabic
+      ],
+      
+      // Localization delegates
+      localizationsDelegates: const [
+        // App-specific localizations
+        AppLocalizations.delegate,
+        
+        // Built-in localization of basic text for Material widgets
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      
+      // Returns a locale which will be used by the app
+      localeResolutionCallback: (locale, supportedLocales) {
+        // Check if the current device locale is supported
+        for (var supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode == locale?.languageCode) {
+            return supportedLocale;
+          }
+        }
+        // If the locale of the device is not supported, use the first one
+        // (English in this case)
+        return supportedLocales.first;
+      },
+      
       home: const BusMapScreen(),
     );
   }
