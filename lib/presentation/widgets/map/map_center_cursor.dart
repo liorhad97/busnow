@@ -42,50 +42,55 @@ class MapCenterCursor extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Cursor circle container
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.colorScheme.surface.withOpacity(0.8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadowMedium,
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: PulsingCursorDot(isActive: isMapMoving),
-                    ),
-                  ),
-                  
-                  // Status label
+                  _buildCursorCircle(theme),
                   const SizedBox(height: 4),
-                  AnimatedOpacity(
-                    opacity: isMapMoving ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: AppDimensions.animDurationShort),
-                    child: Text(
-                      "Finding bus stops...",
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: AppDimensions.textSizeSmall,
-                        fontWeight: FontWeight.w600,
-                        shadows: [
-                          Shadow(
-                            color: theme.colorScheme.surface.withOpacity(0.8),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  _buildStatusLabel(theme),
                 ],
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildCursorCircle(ThemeData theme) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: theme.colorScheme.surface.withOpacity(0.8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowMedium,
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Center(
+        child: PulsingCursorDot(isActive: isMapMoving),
+      ),
+    );
+  }
+  
+  Widget _buildStatusLabel(ThemeData theme) {
+    return AnimatedOpacity(
+      opacity: isMapMoving ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: AppDimensions.animDurationShort),
+      child: Text(
+        "Finding bus stops...",
+        style: TextStyle(
+          color: AppColors.primary,
+          fontSize: AppDimensions.textSizeSmall,
+          fontWeight: FontWeight.w600,
+          shadows: [
+            Shadow(
+              color: theme.colorScheme.surface.withOpacity(0.8),
+              blurRadius: 10,
+            ),
+          ],
         ),
       ),
     );
