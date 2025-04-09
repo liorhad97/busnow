@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/l10n/app_localizations.dart';
 import 'package:busnow/domain/models/bus_stop_model.dart';
 import 'package:busnow/presentation/mixins/bottom_sheet_controller_mixin.dart';
 import 'package:busnow/presentation/mixins/map_controller_mixin.dart';
@@ -12,6 +13,7 @@ import 'package:busnow/presentation/utils/map_markers_manager.dart';
 import 'package:busnow/presentation/screens/bus_map/map_view.dart';
 import 'package:busnow/presentation/screens/bus_map/bottom_sheet_view.dart';
 import 'package:busnow/presentation/screens/bus_map/map_controls_view.dart';
+import 'package:busnow/presentation/widgets/app_drawer.dart';
 
 /// The main map screen where users can see bus stops and their schedules
 ///
@@ -39,6 +41,9 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
 
   // For bus stop detection
   late BusStopDetector _busStopDetector;
+
+  // Key for the scaffold to access the drawer
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -277,6 +282,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
     final busScheduleNotifier = ref.read(busScheduleProvider.notifier);
     final busStops = busScheduleState.busStops;
     final status = busScheduleState.status;
+    final l10n = AppLocalizations.of(context);
 
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
@@ -307,6 +313,27 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         systemNavigationBarColor: theme.colorScheme.surface,
       ),
       child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text(l10n.appTitle),
+          elevation: 0,
+          backgroundColor: theme.primaryColor.withOpacity(0.8),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.language),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LanguageSettingsScreen(),
+                  ),
+                );
+              },
+              tooltip: l10n.languageSettings,
+            ),
+          ],
+        ),
+        drawer: const AppDrawer(),
         body: Stack(
           fit: StackFit.expand,
           children: [
