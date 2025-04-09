@@ -1,6 +1,8 @@
+import 'package:busnow/core/constants/dir/lottie_dir.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:lottie/lottie.dart';
 
 /// A time display that blinks to highlight the earliest bus arrival
 ///
@@ -32,9 +34,7 @@ class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
     super.initState();
     _blinkController = AnimationController(
       vsync: this,
-      duration: Duration(
-        milliseconds: AppDimensions.animDurationExtraLong,
-      ),
+      duration: Duration(milliseconds: AppDimensions.animDurationExtraLong),
     );
 
     _opacityAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
@@ -71,25 +71,19 @@ class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
     return AnimatedBuilder(
       animation: _blinkController,
       builder: (context, child) {
-        final bgColor = widget.isEarliest
-            ? isDarkMode
-                ? Color.lerp(
-                    AppColors.busScheduleHighlightDark.withOpacity(0.5),
-                    AppColors.busScheduleHighlight.withOpacity(0.7),
-                    _opacityAnimation.value,
-                  )
-                : Color.lerp(
-                    const Color(0xFFE8F5E9),
-                    AppColors.busScheduleHighlightLight,
-                    _opacityAnimation.value,
-                  )
-            : Colors.transparent;
+        final bgColor =
+            widget.isEarliest
+                ? isDarkMode
+                    ? AppColors.busScheduleHighlightDark
+                    : AppColors.busScheduleHighlightTextLight.withOpacity(0.05)
+                : Colors.transparent;
 
-        final textColor = widget.isEarliest
-            ? isDarkMode
-                ? AppColors.busScheduleHighlightTextDark
-                : AppColors.busScheduleHighlightTextLight
-            : theme.colorScheme.onSurface;
+        final textColor =
+            widget.isEarliest
+                ? isDarkMode
+                    ? AppColors.busScheduleHighlightTextDark
+                    : AppColors.busScheduleHighlightTextLight
+                : theme.colorScheme.onSurface;
 
         return Container(
           padding: const EdgeInsets.symmetric(
@@ -102,12 +96,32 @@ class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
               AppDimensions.borderRadiusCircular,
             ),
           ),
-          child: Text(
-            '${widget.minutes} min',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(width: AppDimensions.spacingMedium),
+              Text(
+                '${widget.minutes} min',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              Transform.rotate(
+                angle: 45 * (3.14159 / 180), // 45 degrees in radians
+                child: Lottie.asset(
+                  LottieDir.wifi,
+                  width: AppDimensions.iconSizeLarge,
+                  height: AppDimensions.iconSizeLarge,
+                  repeat: false,
+                  controller: _blinkController,
+                  onLoaded: (composition) {
+                    _blinkController.duration = composition.duration;
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },

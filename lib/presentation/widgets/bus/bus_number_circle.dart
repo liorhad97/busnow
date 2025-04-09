@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
 
-/// A circular widget displaying a bus number with gradient background
+/// A widget displaying a bus number with a rounded rectangle design and bus icon
 ///
 /// Features:
-/// - Gradient background with shadow effects
+/// - Rounded rectangle with gradient background
+/// - Bus icon for better visual identification
 /// - Adaptive colors based on status (early, on time, late)
 /// - Bold, clear typography for maximum readability
 class BusNumberCircle extends StatelessWidget {
@@ -23,10 +24,10 @@ class BusNumberCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size,
+      width: size * 2, // Wider to accommodate the rounded rectangle shape
       height: size,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -44,15 +45,26 @@ class BusNumberCircle extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          busNumber,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: AppDimensions.textSizeMedium,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Bus icon
+          Icon(
+            Icons.directions_bus_rounded,
+            color: Colors.white.withOpacity(0.9),
+            size: AppDimensions.iconSizeSmall,
           ),
-        ),
+          const SizedBox(width: 4),
+          // Bus number
+          Text(
+            busNumber,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: AppDimensions.textSizeMedium,
+            ),
+          ),
+        ],
       ),
     );
   }
