@@ -60,6 +60,12 @@ abstract class AppLocalizations {
   String get zoomIn;
   String get zoomOut;
   String get myLocation;
+  
+  // ====================== Error Messages ======================
+  String get loadBusStopsError;
+  String get loadBusSchedulesError;
+  String get noStopSelected;
+  String get andMore;
 
   /// Language control texts
   String get languageSettings;
