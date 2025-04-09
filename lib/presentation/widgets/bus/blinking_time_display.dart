@@ -27,7 +27,6 @@ class BlinkingTimeDisplay extends StatefulWidget {
 class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
     with SingleTickerProviderStateMixin {
   late AnimationController _blinkController;
-  late Animation<double> _opacityAnimation;
 
   @override
   void initState() {
@@ -35,10 +34,6 @@ class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
     _blinkController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: AppDimensions.animDurationExtraLong),
-    );
-
-    _opacityAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
     );
 
     if (widget.isEarliest) {
@@ -114,7 +109,7 @@ class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
                   LottieDir.wifi,
                   width: AppDimensions.iconSizeLarge,
                   height: AppDimensions.iconSizeLarge,
-                  repeat: false,
+                  repeat: true,
                   controller: _blinkController,
                   onLoaded: (composition) {
                     _blinkController.duration = composition.duration;

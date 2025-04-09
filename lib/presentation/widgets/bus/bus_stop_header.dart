@@ -124,7 +124,7 @@ class BusStopHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: AppDimensions.spacingMedium),
+                      Spacer(),
                       BusRefreshButton(
                         onPressed: () {
                           HapticFeedback.mediumImpact();
