@@ -1,69 +1,115 @@
 import 'package:flutter/material.dart';
+import 'package:busnow/core/l10n/app_localizations.dart';
 import 'package:busnow/presentation/providers/bus_providers.dart';
-import 'package:busnow/presentation/widgets/bottom_sheets/enhanced_bottom_sheet.dart';
+import 'package:busnow/presentation/widgets/language_indicator.dart';
 
-/// A component that manages the bottom sheet display and interactions
-///
-/// Responsible for displaying:
-/// - The enhanced bottom sheet with bus schedules
-/// - Handling drag interactions for expanding/collapsing
 class BottomSheetView extends StatelessWidget {
   final AnimationController bottomSheetController;
-  final AnimationController mapFadeController;
+  final Function calculateSheetHeight;
   final BusScheduleState busScheduleState;
-  final double Function(Size) calculateSheetHeight;
-  final VoidCallback onCollapseBottomSheet;
-  final void Function(DragUpdateDetails, Size) onDragUpdate;
-  final void Function(DragEndDetails) onDragEnd;
   final BusScheduleNotifier busScheduleNotifier;
+  final AnimationController mapFadeController;
+  final VoidCallback onCollapseBottomSheet;
+  final Function(DragUpdateDetails) onDragUpdate;
+  final Function(DragEndDetails) onDragEnd;
 
   const BottomSheetView({
     Key? key,
     required this.bottomSheetController,
-    required this.mapFadeController,
-    required this.busScheduleState,
     required this.calculateSheetHeight,
+    required this.busScheduleState,
+    required this.busScheduleNotifier,
+    required this.mapFadeController,
     required this.onCollapseBottomSheet,
     required this.onDragUpdate,
-    required this.busScheduleNotifier,
     required this.onDragEnd,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final selectedBusStop = busScheduleState.selectedBusStop;
-    final status = busScheduleState.status;
-    final busSchedules = busScheduleState.busSchedules;
-
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    
     return AnimatedBuilder(
       animation: bottomSheetController,
       builder: (context, child) {
-        final height = calculateSheetHeight(screenSize);
-
+        final height = calculateSheetHeight(bottomSheetController.value);
+        
         return Positioned(
           left: 0,
           right: 0,
           bottom: 0,
-          height: bottomSheetController.value > 0 ? height : 0,
+          height: height,
           child: GestureDetector(
-            onVerticalDragUpdate:
-                (details) => onDragUpdate(details, screenSize),
+            onVerticalDragUpdate: onDragUpdate,
             onVerticalDragEnd: onDragEnd,
-            child: EnhancedBottomSheet(
-              animation: bottomSheetController,
-              selectedBusStop: selectedBusStop,
-              nearbyBusStops: busScheduleState.nearbyBusStops,
-              status: status,
-              busSchedules: busSchedules,
-              earliestTimes: busScheduleState.getEarliestArrivalTimes(),
-              onClose: () {
-                onCollapseBottomSheet();
-                mapFadeController.reverse();
-              },
-              onRefresh: () {
-                busScheduleNotifier.refreshBusSchedules();
-              },
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Handle and controls
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: theme.dividerColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Language indicator (compact for the bottom sheet)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Bus stop info or loading indicator
+                        if (busScheduleState.status == BusScheduleStateStatus.loading)
+                          Text(l10n.loading),
+                        if (busScheduleState.status == BusScheduleStateStatus.loaded && 
+                            busScheduleState.selectedBusStop != null)
+                          Text(
+                            busScheduleState.selectedBusStop!.name,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                        
+                        // Language indicator
+                        const LanguageIndicator(compact: true),
+                      ],
+                    ),
+                  ),
+                  
+                  // Content placeholder - replace with actual content
+                  Expanded(
+                    child: Center(
+                      child: busScheduleState.status == BusScheduleStateStatus.loading
+                          ? CircularProgressIndicator()
+                          : Text(l10n.detailsMessage),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
