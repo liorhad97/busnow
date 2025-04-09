@@ -81,6 +81,19 @@ class AppLocalizationsHe implements AppLocalizations {
   
   @override
   String get myLocation => 'המיקום שלי';
+  
+  // ====================== Error Messages ======================
+  @override
+  String get loadBusStopsError => 'נכשל בטעינת תחנות אוטובוס';
+  
+  @override
+  String get loadBusSchedulesError => 'נכשל בטעינת לוחות זמנים של אוטובוסים';
+  
+  @override
+  String get noStopSelected => 'לא נבחרה תחנת אוטובוס';
+  
+  @override
+  String get andMore => 'ועוד';
 
   // Language settings
   @override
