@@ -68,6 +68,9 @@ class AppLocalizationsRu implements AppLocalizations {
 
   @override
   String get error => 'Ошибка';
+  
+  @override
+  String get detailsMessage => 'Выберите автобусную остановку, чтобы посмотреть расписание';
 
   // Language settings
   @override
