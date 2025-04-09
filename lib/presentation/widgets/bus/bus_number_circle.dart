@@ -12,7 +12,7 @@ class BusNumberCircle extends StatelessWidget {
   final String busNumber;
   final Color statusColor;
   final double size;
-  
+
   const BusNumberCircle({
     Key? key,
     required this.busNumber,

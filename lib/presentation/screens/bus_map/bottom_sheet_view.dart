@@ -3,7 +3,7 @@ import 'package:busnow/presentation/providers/bus_providers.dart';
 import 'package:busnow/presentation/widgets/bottom_sheets/enhanced_bottom_sheet.dart';
 
 /// A component that manages the bottom sheet display and interactions
-/// 
+///
 /// Responsible for displaying:
 /// - The enhanced bottom sheet with bus schedules
 /// - Handling drag interactions for expanding/collapsing
@@ -15,6 +15,7 @@ class BottomSheetView extends StatelessWidget {
   final VoidCallback onCollapseBottomSheet;
   final void Function(DragUpdateDetails, Size) onDragUpdate;
   final void Function(DragEndDetails) onDragEnd;
+  final BusScheduleNotifier busScheduleNotifier;
 
   const BottomSheetView({
     Key? key,
@@ -24,6 +25,7 @@ class BottomSheetView extends StatelessWidget {
     required this.calculateSheetHeight,
     required this.onCollapseBottomSheet,
     required this.onDragUpdate,
+    required this.busScheduleNotifier,
     required this.onDragEnd,
   }) : super(key: key);
 
@@ -45,7 +47,8 @@ class BottomSheetView extends StatelessWidget {
           bottom: 0,
           height: bottomSheetController.value > 0 ? height : 0,
           child: GestureDetector(
-            onVerticalDragUpdate: (details) => onDragUpdate(details, screenSize),
+            onVerticalDragUpdate:
+                (details) => onDragUpdate(details, screenSize),
             onVerticalDragEnd: onDragEnd,
             child: EnhancedBottomSheet(
               animation: bottomSheetController,
@@ -59,7 +62,7 @@ class BottomSheetView extends StatelessWidget {
                 mapFadeController.reverse();
               },
               onRefresh: () {
-                busScheduleState.notifier.refreshBusSchedules();
+                busScheduleNotifier.refreshBusSchedules();
               },
             ),
           ),

@@ -41,12 +41,13 @@ class _BusRefreshButtonState extends State<BusRefreshButton>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
+      // Slow down the animation by increasing the duration
+      duration: const Duration(milliseconds: 1500), // Much slower rotation
       vsync: this,
     );
 
     _rotationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutQuad),
     );
 
     if (widget.isLoading) {

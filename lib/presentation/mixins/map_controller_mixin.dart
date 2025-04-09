@@ -14,8 +14,7 @@ import 'package:busnow/domain/models/bus_stop_model.dart';
 /// - Map controller initialization and camera movements
 /// - Distance calculations and bus stop detection
 /// - Map region and visible location utilities
-mixin MapControllerMixin<T extends StatefulWidget>
-    on State<T>, TickerProviderStateMixin<T> {
+mixin MapControllerMixin<T extends StatefulWidget> on State<T> {
   // The map controller reference
   PlatformMapController? mapController;
 
@@ -38,14 +37,14 @@ mixin MapControllerMixin<T extends StatefulWidget>
   LatLng? userLocation;
 
   /// Initialize map-related controllers
-  void initializeMapControllers() {
+  void initializeMapControllers(TickerProvider thiss) {
     mapFadeController = AnimationController(
-      vsync: this,
+      vsync: thiss,
       duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
     );
 
     markerPulseController = AnimationController(
-      vsync: this,
+      vsync: thiss,
       duration: const Duration(milliseconds: AppDimensions.animDurationLoading),
     )..repeat(reverse: true);
   }

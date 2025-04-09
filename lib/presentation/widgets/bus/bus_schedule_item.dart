@@ -1,7 +1,7 @@
+import 'package:busnow/presentation/widgets/bus/bus_number_circle.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/dimensions.dart';
 import 'package:busnow/domain/models/bus_schedule_model.dart';
-import 'package:busnow/presentation/widgets/bus/simple_bus_circle.dart';
 import 'package:busnow/presentation/widgets/bus/blinking_time_display.dart';
 
 /// A widget for displaying a single bus schedule item
@@ -36,11 +36,11 @@ class BusScheduleItem extends StatelessWidget {
           child: Row(
             children: [
               // Bus number circle
-              SimpleBusCircle(
+              BusNumberCircle(
                 busNumber: schedule.busNumber,
-                color: primaryColor,
+                statusColor: primaryColor,
               ),
-              
+
               const SizedBox(width: AppDimensions.spacingMedium),
 
               // Destination and arrival info
@@ -54,6 +54,7 @@ class BusScheduleItem extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+
                     const SizedBox(height: AppDimensions.spacingExtraSmall),
                     Text(
                       'Arriving in',

@@ -8,8 +8,7 @@ import 'package:busnow/core/constants/dimensions.dart';
 /// - Initializing and disposing bottom sheet controllers
 /// - Expanding and collapsing bottom sheets with proper animations
 /// - Handling state updates consistently across animations
-mixin BottomSheetControllerMixin
-    on State<StatefulWidget>, TickerProviderStateMixin {
+mixin BottomSheetControllerMixin<T extends StatefulWidget> on State<T> {
   // Animation controller for the bottom sheet
   late AnimationController bottomSheetController;
 
@@ -21,9 +20,9 @@ mixin BottomSheetControllerMixin
   final double expandedSheetHeight = 0.45; // 45% of screen height
 
   /// Initialize the bottom sheet controller
-  void initializeBottomSheetController() {
+  void initializeBottomSheetController(TickerProvider thiss) {
     bottomSheetController = AnimationController(
-      vsync: this,
+      vsync: thiss,
       duration: const Duration(milliseconds: AppDimensions.animDurationMedium),
       value: 0.0, // Start collapsed
     );
