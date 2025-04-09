@@ -68,6 +68,9 @@ class AppLocalizationsHe implements AppLocalizations {
 
   @override
   String get error => 'שגיאה';
+  
+  @override
+  String get detailsMessage => 'בחר תחנת אוטובוס כדי לצפות בלוחות הזמנים';
 
   // Language settings
   @override
