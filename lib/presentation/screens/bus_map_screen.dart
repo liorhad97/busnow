@@ -210,7 +210,7 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
         if (areDifferent) {
           // Get localized messages
           final l10n = ref.read(localizedBusMessagesProvider(context));
-          
+
           // Load schedules for all nearby stops
           ref
               .read(busScheduleProvider.notifier)
@@ -422,7 +422,11 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
               busScheduleNotifier: busScheduleNotifier,
               mapFadeController: mapFadeController,
               onCollapseBottomSheet: collapseBottomSheet,
-              onDragUpdate: handleBottomSheetDrag,
+              onDragUpdate:
+                  (details) => handleBottomSheetDrag(
+                    details,
+                    MediaQuery.of(context).size,
+                  ),
               onDragEnd: handleBottomSheetDragEnd,
             ),
           ],
