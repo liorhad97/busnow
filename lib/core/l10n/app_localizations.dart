@@ -20,43 +20,70 @@ abstract class AppLocalizations {
     Locale('en'), // English
     Locale('he'), // Hebrew
   ];
-
-  static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  
+  /// Gets the localized resources for the given context
+  /// Returns null if no AppLocalizations are found in the widget tree
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  // ====================== General ======================
-  String get appTitle;
-  String get welcomeMessage;
-  String get settingsTitle;
-  String get chooseYourLanguage;
-  String get save;
-  String get cancel;
-  String get done;
-  String get edit;
-  String get delete;
-  String get confirm;
-  String get search;
-  String get share;
-  String get back;
-  String get details;
-  String get close;
-  String get continue_;
-  String get skip;
-  String get next;
-  String get finish;
-  String get loading;
-  String get success;
-  String get error;
+  /// Gets the localized resources for the given context, with fallback to English
+  /// Never returns null - provides English translations if localization is not set up
+  static AppLocalizations safe(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations) ?? AppLocalizationsEn();
+  }
 
-  /// Language control texts
+  // General
+  String get appTitle;
+  String get loading;
+  String get error;
+  String get retry;
+  String get cancel;
+  String get confirm;
+  String get ok;
+  String get save;
+  String get delete;
+  String get search;
+  String get noResults;
+  String get noResultsFound;
+  String get emptyStateMessage;
+
+  // Language settings
   String get languageSettings;
+  String get chooseYourLanguage;
   String get englishLanguage;
   String get hebrewLanguage;
   String get systemLanguage;
+
+  // Bus related
+  String get busStops;
+  String get busRoutes;
+  String get busSchedule;
+  String get nextBus;
+  String get arriving;
+  String get departed;
+  String get minutesAway;
+  String get early;
+  String get onTime;
+  String get late;
+  String minutesAbbreviated(int minutes);
+  String busNumber(String number);
+  String busArrivalTime(String time);
+
+  // Map related
+  String get myLocation;
+  String get findNearbyStops;
+  String get directions;
+  String get zoomIn;
+  String get zoomOut;
+  String get recenter;
+
+  // Errors
+  String get connectionError;
+  String get locationPermissionDenied;
+  String get scheduleUnavailable;
 }
 
-/// Delegate class to handle loading the localized resources
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
 
@@ -67,21 +94,20 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
 
   @override
   Future<AppLocalizations> load(Locale locale) {
-    return SynchronousFuture<AppLocalizations>(_lookupAppLocalizations(locale));
+    return SynchronousFuture<AppLocalizations>(_createLocalization(locale));
   }
 
   @override
   bool shouldReload(AppLocalizationsDelegate old) => false;
-}
 
-AppLocalizations _lookupAppLocalizations(Locale locale) {
-  switch (locale.languageCode) {
-    case 'he':
-      return AppLocalizationsHe();
-    case 'en':
-    default:
-      return AppLocalizationsEn();
+  AppLocalizations _createLocalization(Locale locale) {
+    switch (locale.languageCode) {
+      case 'en':
+        return AppLocalizationsEn();
+      case 'he':
+        return AppLocalizationsHe();
+      default:
+        return AppLocalizationsEn();
+    }
   }
 }
-
-/// The delegate responsible for loading localizations
