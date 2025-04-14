@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:math' as math;
 
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:busnow/core/constants/colors.dart';
@@ -363,12 +364,16 @@ class _EnhancedBottomSheetState extends State<EnhancedBottomSheet>
         Expanded(
           child:
               widget.status == BusScheduleStateStatus.loading
-                  ? LoadingStateView(message: "Finding buses...")
+                  ? LoadingStateView(
+                    message: L10n.of(context).findingBuses,
+                    size: AppDimensions.iconSizeExtraLarge,
+                    useBusAnimation: true,
+                  )
                   : widget.busSchedules.isEmpty
                   ? EmptyStateView(
                     icon: Icons.directions_bus_outlined,
-                    message: "No buses yet—check back soon!",
-                    actionLabel: "Tap refresh to check again",
+                    message: L10n.of(context).noBusesYet,
+                    actionLabel: L10n.of(context).tapToRefresh,
                   )
                   : BusScheduleListView(
                     scrollController: _scrollController,

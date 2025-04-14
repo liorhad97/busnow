@@ -7,12 +7,6 @@ class AppLocalizationsHe implements AppLocalizations {
   String get appTitle => 'באסנאו';
 
   @override
-  String get welcomeMessage => 'ברוכים הבאים לבאסנאו!';
-
-  @override
-  String get settingsTitle => 'הגדרות';
-
-  @override
   String get chooseYourLanguage => 'בחר את השפה שלך';
 
   @override
@@ -20,12 +14,6 @@ class AppLocalizationsHe implements AppLocalizations {
 
   @override
   String get cancel => 'ביטול';
-
-  @override
-  String get done => 'סיום';
-
-  @override
-  String get edit => 'עריכה';
 
   @override
   String get delete => 'מחיקה';
@@ -37,34 +25,7 @@ class AppLocalizationsHe implements AppLocalizations {
   String get search => 'חיפוש';
 
   @override
-  String get share => 'שיתוף';
-
-  @override
-  String get back => 'חזרה';
-
-  @override
-  String get details => 'פרטים';
-
-  @override
-  String get close => 'סגירה';
-
-  @override
-  String get continue_ => 'המשך';
-
-  @override
-  String get skip => 'דלג';
-
-  @override
-  String get next => 'הבא';
-
-  @override
-  String get finish => 'סיום';
-
-  @override
   String get loading => 'טוען...';
-
-  @override
-  String get success => 'הצלחה';
 
   @override
   String get error => 'שגיאה';
@@ -81,4 +42,106 @@ class AppLocalizationsHe implements AppLocalizations {
 
   @override
   String get systemLanguage => 'ברירת מחדל של המערכת';
+
+  // Bus related
+  @override
+  String get arriving => 'מגיע';
+
+  @override
+  String busArrivalTime(String time) => 'מגיע בשעה $time';
+
+  @override
+  String busNumber(String number) => 'קו $number';
+
+  @override
+  String busCount(int count) => '$count אוטובוסים';
+
+  @override
+  String get busRoutes => 'מסלולי אוטובוס';
+
+  @override
+  String get busSchedule => 'לוח זמנים';
+
+  @override
+  String get busStops => 'תחנות אוטובוס';
+
+  @override
+  String get connectionError => 'שגיאת חיבור. אנא בדוק את חיבור האינטרנט שלך.';
+
+  @override
+  String get departed => 'יצא';
+
+  @override
+  String get directions => 'הוראות הגעה';
+
+  @override
+  String get early => 'מוקדם';
+
+  @override
+  String get emptyStateMessage => 'אין מידע להצגה';
+
+  @override
+  String get findNearbyStops => 'מצא תחנות קרובות';
+
+  @override
+  String get late => 'מאחר';
+
+  @override
+  String get locationPermissionDenied =>
+      'הרשאת מיקום נדחתה. אנא אפשר שירותי מיקום.';
+
+  @override
+  String minutesAbbreviated(int minutes) => '$minutes דק׳';
+
+  @override
+  String get minutesAway => 'דקות';
+
+  @override
+  String get myLocation => 'המיקום שלי';
+
+  @override
+  String get nextBus => 'אוטובוס הבא';
+
+  @override
+  String get noResults => 'אין תוצאות';
+
+  @override
+  String get noResultsFound => 'לא נמצאו תוצאות';
+
+  @override
+  String get ok => 'אישור';
+
+  @override
+  String get onTime => 'בזמן';
+
+  @override
+  String get recenter => 'מרכז מחדש';
+
+  @override
+  String get retry => 'נסה שוב';
+
+  @override
+  String get scheduleUnavailable => 'מידע על לוח הזמנים אינו זמין כרגע.';
+
+  @override
+  String get zoomIn => 'הגדל';
+
+  @override
+  String get zoomOut => 'הקטן';
+
+  @override
+  String get arrivalTimes => 'זמני הגעה';
+
+  @override
+  String get liveUpdate => 'עדכון בזמן אמת';
+
+  // Bottom sheet messages
+  @override
+  String get findingBuses => 'מחפש אוטובוסים...';
+
+  @override
+  String get noBusesYet => 'אין אוטובוסים עדיין—בדוק שוב בקרוב!';
+
+  @override
+  String get tapToRefresh => 'לחץ על רענון כדי לבדוק שוב';
 }

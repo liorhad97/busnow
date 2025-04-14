@@ -11,4 +11,5 @@ class LottieDir {
 
   // Specific icons
   static const String wifi = '${_basePath}wifi_animation.json';
+  static const String bus = '${_basePath}bus_loading_animation.json';
 }

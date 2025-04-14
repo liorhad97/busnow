@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:busnow/domain/models/bus_stop_model.dart';
 import 'package:busnow/presentation/mixins/bottom_sheet_controller_mixin.dart';
 import 'package:busnow/presentation/mixins/map_controller_mixin.dart';
@@ -12,6 +13,7 @@ import 'package:busnow/presentation/utils/map_markers_manager.dart';
 import 'package:busnow/presentation/screens/bus_map/map_view.dart';
 import 'package:busnow/presentation/screens/bus_map/bottom_sheet_view.dart';
 import 'package:busnow/presentation/screens/bus_map/map_controls_view.dart';
+import 'package:busnow/presentation/screens/language_settings_screen.dart';
 
 /// The main map screen where users can see bus stops and their schedules
 ///
@@ -379,6 +381,38 @@ class _BusMapScreenState extends ConsumerState<BusMapScreen>
               currentZoom: currentZoom,
               userLocation: userLocation ?? MapControllerMixin.defaultPosition,
               onLocate: _handleLocateButtonPress,
+            ),
+
+            // Language settings button positioned on the map
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.language, color: Colors.black54),
+                  tooltip:
+                      L10n.of(context)?.languageSettings ?? 'Language Settings',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LanguageSettingsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
 
             // Bottom sheet

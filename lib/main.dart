@@ -1,5 +1,5 @@
 import 'package:busnow/core/themes/app_theme.dart';
-import 'package:busnow/core/providers/locale_provider.dart';
+import 'package:busnow/core/l10n/locale_provider.dart';
 import 'package:busnow/core/l10n/app_localizations.dart';
 import 'package:busnow/presentation/screens/bus_map_screen.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,7 @@ void main() {
   // Ensure we have appropriate permissions configured
   _configureApp();
 
-  runApp(const ProviderScope(child: BusTrackingApp()));
+  runApp(const ProviderScope(child: BusNowApp()));
 }
 
 Future<void> _configureApp() async {
@@ -28,36 +28,30 @@ Future<void> _configureApp() async {
 
   if (!serviceEnabled) {
     // Location services are disabled, we'll handle this in the UI
-    print('Location services are disabled');
+    debugPrint('Location services are disabled');
     return;
   }
 
   // Check initial permission status (but don't request yet - will do that in UI)
   LocationPermission permission = await Geolocator.checkPermission();
-  print('Initial location permission status: $permission');
+  debugPrint('Initial location permission status: $permission');
 
   // We'll request permissions in the UI flow rather than on startup
   // This provides a better UX as users understand why we need location
-
-  // Ensure we have required permissions added to AndroidManifest.xml:
-  // <uses-permission android:name="android.permission.INTERNET" />
-  // <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  // <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-  // For iOS, add to Info.plist:
-  // <key>NSLocationWhenInUseUsageDescription</key>
-  // <string>This app needs access to location to find nearby bus stops.</string>
-  // <key>NSLocationAlwaysUsageDescription</key>
-  // <string>This app needs access to location to find nearby bus stops.</string>
 }
 
-class BusTrackingApp extends ConsumerWidget {
-  const BusTrackingApp({super.key});
+class BusNowApp extends ConsumerStatefulWidget {
+  const BusNowApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BusNowApp> createState() => _BusNowAppState();
+}
+
+class _BusNowAppState extends ConsumerState<BusNowApp> {
+  @override
+  Widget build(BuildContext context) {
     // Get current locale from provider
-    final locale = ref.watch(currentLocaleProvider);
+    final localeState = ref.watch(localeProvider);
     final isRtl = ref.watch(isRtlProvider);
 
     return MaterialApp(
@@ -67,7 +61,7 @@ class BusTrackingApp extends ConsumerWidget {
       darkTheme: AppTheme.getTheme(Brightness.dark),
       themeMode: ThemeMode.system,
       // Add localization support
-      locale: locale,
+      locale: localeState.locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       // Configure RTL/LTR directionality

@@ -23,6 +23,9 @@ class BusNumberCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+
     return Container(
       width: size * 2, // Wider to accommodate the rounded rectangle shape
       height: size,
@@ -38,33 +41,30 @@ class BusNumberCircle extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withOpacity(0.3),
+            color: statusColor.withOpacity(isDark ? 0.5 : 0.3),
             blurRadius: 8,
             spreadRadius: 1,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Bus icon
-          Icon(
-            Icons.directions_bus_rounded,
-            color: Colors.white.withOpacity(0.9),
-            size: AppDimensions.iconSizeSmall,
+      child: Center(
+        child: Text(
+          busNumber,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: AppDimensions.textSizeLarge + 2,
+            letterSpacing: 0.5,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
-          // Bus number
-          Text(
-            busNumber,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: AppDimensions.textSizeMedium,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

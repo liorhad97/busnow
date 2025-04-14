@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:busnow/presentation/widgets/map/pulsing_cursor_dot.dart';
 
 /// A widget that displays a center cursor for the map
@@ -12,21 +13,21 @@ import 'package:busnow/presentation/widgets/map/pulsing_cursor_dot.dart';
 /// - Smooth transitions between states
 class MapCenterCursor extends StatelessWidget {
   final bool isMapMoving;
-  
-  const MapCenterCursor({
-    Key? key,
-    required this.isMapMoving,
-  }) : super(key: key);
+
+  const MapCenterCursor({Key? key, required this.isMapMoving})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Positioned.fill(
       child: Center(
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 1.0, end: 1.3),
-          duration: const Duration(milliseconds: AppDimensions.animDurationLoading),
+          duration: const Duration(
+            milliseconds: AppDimensions.animDurationLoading,
+          ),
           curve: Curves.easeInOut,
           key: ValueKey(isMapMoving), // Reset animation when state changes
           // Add auto-repeat to make animation continuous
@@ -44,7 +45,7 @@ class MapCenterCursor extends StatelessWidget {
                 children: [
                   _buildCursorCircle(theme),
                   const SizedBox(height: 4),
-                  _buildStatusLabel(theme),
+                  _buildStatusLabel(theme, context),
                 ],
               ),
             );
@@ -53,7 +54,7 @@ class MapCenterCursor extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildCursorCircle(ThemeData theme) {
     return Container(
       width: 40,
@@ -69,18 +70,16 @@ class MapCenterCursor extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: PulsingCursorDot(isActive: isMapMoving),
-      ),
+      child: Center(child: PulsingCursorDot(isActive: isMapMoving)),
     );
   }
-  
-  Widget _buildStatusLabel(ThemeData theme) {
+
+  Widget _buildStatusLabel(ThemeData theme, BuildContext context) {
     return AnimatedOpacity(
       opacity: isMapMoving ? 1.0 : 0.0,
       duration: const Duration(milliseconds: AppDimensions.animDurationShort),
       child: Text(
-        "Finding bus stops...",
+        L10n.of(context).findNearbyStops,
         style: TextStyle(
           color: AppColors.primary,
           fontSize: AppDimensions.textSizeSmall,
