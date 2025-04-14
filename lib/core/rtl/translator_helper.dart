@@ -4,8 +4,8 @@ import 'package:busnow/core/l10n/app_localizations.dart';
 /// Helper class for quickly accessing translations throughout the app
 class L10n {
   /// Get all translations for the current context
-  static AppLocalizations safe(BuildContext context) {
-    return AppLocalizations.safe(context);
+  static AppLocalizations of(BuildContext context) {
+    return AppLocalizations.of(context);
   }
 
   /// Format a date according to the current locale

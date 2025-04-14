@@ -1,3 +1,4 @@
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:busnow/presentation/widgets/bus/bus_refresh_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -96,7 +97,7 @@ class BusStopHeader extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          "$busCount Buses",
+                          L10n.of(context).busCount(busCount),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
@@ -117,7 +118,7 @@ class BusStopHeader extends StatelessWidget {
                       const SizedBox(width: 2),
 
                       Text(
-                        "Live Updates",
+                        L10n.of(context).liveUpdate,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.textTheme.bodySmall?.color?.withOpacity(
                             0.7,

@@ -95,14 +95,16 @@ class BusScheduleState {
         (a, b) => a.arrivalTimeInMinutes.compareTo(b.arrivalTimeInMinutes),
       );
 
-      // Use the destination of the earliest bus (they should be the same for the same route)
+      // Use the destination and city of the earliest bus (they should be the same for the same route)
       final destination = schedules.first.destination;
+      final city = schedules.first.city;
 
       result.add(
         BusScheduleGroup(
           busNumber: busNumber,
           destination: destination,
           schedules: schedules,
+          city: city,
         ),
       );
     });

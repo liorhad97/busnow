@@ -1,5 +1,3 @@
-import 'package:flutter/src/widgets/framework.dart';
-
 /// Model class representing a bus schedule
 class BusSchedule {
   final String id;
@@ -7,6 +5,7 @@ class BusSchedule {
   final String busStopId;
   final int arrivalTimeInMinutes;
   final String destination;
+  final String city;
 
   const BusSchedule({
     required this.id,
@@ -14,6 +13,7 @@ class BusSchedule {
     required this.busStopId,
     required this.arrivalTimeInMinutes,
     required this.destination,
+    this.city = '',
   });
 
   Map<String, dynamic> toMap() {

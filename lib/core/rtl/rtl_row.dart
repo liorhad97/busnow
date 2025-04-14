@@ -1,4 +1,4 @@
-import 'package:busnow/core/l10n/translator_helper.dart';
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,7 +25,6 @@ class RtlRow extends ConsumerWidget {
       mainAxisAlignment: mainAxisAlignment,
       crossAxisAlignment: crossAxisAlignment,
       mainAxisSize: mainAxisSize,
-      // Reverse children in RTL mode
       children: children,
     );
   }

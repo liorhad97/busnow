@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:busnow/core/enums/languages.dart';
-import 'package:busnow/core/l10n/app_localizations.dart';
-import 'package:busnow/core/providers/locale_provider.dart';
+import 'package:busnow/core/l10n/locale_provider.dart';
+import 'package:busnow/core/rtl/translator_helper.dart';
 
 class LanguageSettingsScreen extends ConsumerWidget {
   const LanguageSettingsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentLanguage = ref.watch(currentLanguageProvider);
-    final l10n = AppLocalizations.of(context);
+    final currentLanguage = ref.watch(localeProvider).language;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.languageSettings),
-        // Ensure appbar actions are on the correct side based on RTL/LTR
+        title: Text(L10n.of(context)?.languageSettings ?? 'Language Settings'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -27,7 +25,7 @@ class LanguageSettingsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.chooseYourLanguage,
+              L10n.of(context)?.chooseYourLanguage ?? 'Choose Your Language',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 16),
@@ -37,7 +35,7 @@ class LanguageSettingsScreen extends ConsumerWidget {
               context,
               ref,
               Languages.english,
-              l10n.englishLanguage,
+              L10n.of(context)?.englishLanguage ?? 'English',
               isSelected: currentLanguage == Languages.english,
             ),
 
@@ -47,7 +45,7 @@ class LanguageSettingsScreen extends ConsumerWidget {
               context,
               ref,
               Languages.hebrew,
-              l10n.hebrewLanguage,
+              L10n.of(context)?.hebrewLanguage ?? 'Hebrew',
               isSelected: currentLanguage == Languages.hebrew,
             ),
 
@@ -59,7 +57,9 @@ class LanguageSettingsScreen extends ConsumerWidget {
                 ref.read(localeProvider.notifier).useDeviceLocale(context);
               },
               icon: const Icon(Icons.smartphone),
-              label: Text(l10n.systemLanguage),
+              label: Text(
+                L10n.of(context)?.systemLanguage ?? 'System Language',
+              ),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
               ),
@@ -98,18 +98,24 @@ class LanguageSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              // Flag or language icon could be added here
+              // Language name with larger, bold text
               Expanded(
                 child: Text(
                   displayName,
-                  style: Theme.of(context).textTheme.titleLarge,
-                  textAlign: language.isRtl ? TextAlign.right : TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
                 ),
               ),
+
+              // Checkmark for selected language
               if (isSelected)
                 Icon(
                   Icons.check_circle,
                   color: Theme.of(context).colorScheme.primary,
+                  size: 28,
                 ),
             ],
           ),

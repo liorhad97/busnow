@@ -20,17 +20,18 @@ abstract class AppLocalizations {
     Locale('en'), // English
     Locale('he'), // Hebrew
   ];
-  
+
   /// Gets the localized resources for the given context
   /// Returns null if no AppLocalizations are found in the widget tree
-  static AppLocalizations? of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
   /// Gets the localized resources for the given context, with fallback to English
   /// Never returns null - provides English translations if localization is not set up
   static AppLocalizations safe(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations) ?? AppLocalizationsEn();
+    return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
+        AppLocalizationsEn();
   }
 
   // General
@@ -69,6 +70,7 @@ abstract class AppLocalizations {
   String minutesAbbreviated(int minutes);
   String busNumber(String number);
   String busArrivalTime(String time);
+  String busCount(int count);
 
   // Map related
   String get myLocation;
@@ -82,6 +84,14 @@ abstract class AppLocalizations {
   String get connectionError;
   String get locationPermissionDenied;
   String get scheduleUnavailable;
+
+  String get arrivalTimes;
+  String get liveUpdate;
+
+  // Bottom sheet messages
+  String get findingBuses;
+  String get noBusesYet;
+  String get tapToRefresh;
 }
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

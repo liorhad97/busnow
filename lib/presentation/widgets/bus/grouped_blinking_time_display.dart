@@ -1,4 +1,6 @@
 import 'package:busnow/core/constants/dimensions.dart';
+import 'package:busnow/core/rtl/rtl_padding.dart';
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dir/lottie_dir.dart';
@@ -52,7 +54,7 @@ class _GroupedBlinkingTimeDisplayState extends State<GroupedBlinkingTimeDisplay>
     final sortedTimes = List<int>.from(widget.arrivalTimes)..sort();
 
     // Limit to showing only the first 3 arrival times
-    final timesToShow = sortedTimes.take(3).toList();
+    final timesToShow = sortedTimes.take(2).toList();
     final hasMoreTimes = sortedTimes.length > 3;
 
     return Row(
@@ -70,7 +72,7 @@ class _GroupedBlinkingTimeDisplayState extends State<GroupedBlinkingTimeDisplay>
           Padding(
             padding: const EdgeInsets.only(left: 4.0),
             child: Text(
-              "+${sortedTimes.length - 3}",
+              "+${sortedTimes.length - 2}",
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.primary.withOpacity(0.7),
                 fontWeight: FontWeight.w500,
@@ -90,8 +92,8 @@ class _GroupedBlinkingTimeDisplayState extends State<GroupedBlinkingTimeDisplay>
     final theme = Theme.of(context);
     // Use green color for earliest time and black for other times
 
-    return Padding(
-      padding: EdgeInsets.only(right: hasNext ? 4.0 : 0.0),
+    return RtlPadding(
+      right: hasNext ? 4.0 : 0.0,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         decoration: BoxDecoration(
@@ -107,7 +109,7 @@ class _GroupedBlinkingTimeDisplayState extends State<GroupedBlinkingTimeDisplay>
           children: [
             // Text on top for readability
             Text(
-              "${minutes}m",
+              L10n.of(context).minutesAbbreviated(minutes),
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontSize: 14.0, // Bigger font size
                 fontWeight: isEarliest ? FontWeight.bold : FontWeight.normal,

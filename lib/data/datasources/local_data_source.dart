@@ -59,12 +59,27 @@ class BusScheduleLocalDataSource {
       'Financial District',
     ];
 
+    // Add cities for each destination
+    final cities = [
+      'Tel Aviv',
+      'Jerusalem',
+      'Haifa',
+      'Be\'er Sheva',
+      'Eilat',
+      'Netanya',
+      'Ashdod',
+    ];
+
     // Generate 3-8 bus schedules for the stop
     final schedulesCount = random.nextInt(6) + 3;
 
     return List.generate(schedulesCount, (index) {
       final busNumber = busNumbers[random.nextInt(busNumbers.length)];
-      final destination = destinations[random.nextInt(destinations.length)];
+      // Select a random destination and its corresponding city
+      final destinationIndex = random.nextInt(destinations.length);
+      final destination = destinations[destinationIndex];
+      final city = cities[destinationIndex];
+
       // Arrival time between 1 and 30 minutes
       final arrivalTime = random.nextInt(30) + 1;
 
@@ -74,6 +89,7 @@ class BusScheduleLocalDataSource {
         busStopId: busStopId,
         arrivalTimeInMinutes: arrivalTime,
         destination: destination,
+        city: city,
       );
     });
   }

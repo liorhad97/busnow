@@ -4,12 +4,14 @@ import 'package:busnow/domain/models/bus_schedule_model.dart';
 class BusScheduleGroup {
   final String busNumber;
   final String destination;
+  final String city;
   final List<BusSchedule> schedules;
 
   const BusScheduleGroup({
     required this.busNumber,
     required this.destination,
     required this.schedules,
+    this.city = '', // Default to empty string if not provided
   });
 
   /// Get the earliest arrival time in minutes

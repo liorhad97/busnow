@@ -1,3 +1,4 @@
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:busnow/domain/models/bus_schedule_group_model.dart';
 import 'package:busnow/presentation/widgets/bus/bus_number_circle.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +14,7 @@ import 'package:busnow/presentation/widgets/bus/grouped_blinking_time_display.da
 class GroupedBusScheduleItem extends StatelessWidget {
   final BusScheduleGroup scheduleGroup;
 
-  const GroupedBusScheduleItem({Key? key, required this.scheduleGroup})
-    : super(key: key);
+  const GroupedBusScheduleItem({super.key, required this.scheduleGroup});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,9 @@ class GroupedBusScheduleItem extends StatelessWidget {
 
                     const SizedBox(height: AppDimensions.spacingExtraSmall),
                     Text(
-                      'Next arrivals',
+                      scheduleGroup.city.isNotEmpty
+                          ? scheduleGroup.city
+                          : L10n.of(context).arrivalTimes,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),

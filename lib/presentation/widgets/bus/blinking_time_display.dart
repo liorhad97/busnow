@@ -1,4 +1,6 @@
 import 'package:busnow/core/constants/dir/lottie_dir.dart';
+import 'package:busnow/core/rtl/rtl_row.dart';
+import 'package:busnow/core/rtl/translator_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:busnow/core/constants/colors.dart';
 import 'package:busnow/core/constants/dimensions.dart';
@@ -81,6 +83,9 @@ class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
                 : theme.colorScheme.onSurface;
 
         return Container(
+          margin: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.spacingMedium - 4,
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimensions.spacingMedium - 4,
             vertical: AppDimensions.spacingSmall,
@@ -97,7 +102,7 @@ class _BlinkingTimeDisplayState extends State<BlinkingTimeDisplay>
             children: [
               SizedBox(width: AppDimensions.spacingMedium),
               Text(
-                '${widget.minutes} min',
+                L10n.of(context).minutesAbbreviated(widget.minutes),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: textColor,
