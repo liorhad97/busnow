@@ -19,7 +19,6 @@ class GroupedBusScheduleItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
     final arrivalTimes = scheduleGroup.arrivalTimes;
     final earliestTime = scheduleGroup.earliestArrivalTime;
 
@@ -33,10 +32,7 @@ class GroupedBusScheduleItem extends StatelessWidget {
           child: Row(
             children: [
               // Bus number in rounded rectangle with icon
-              BusNumberCircle(
-                busNumber: scheduleGroup.busNumber,
-                statusColor: primaryColor,
-              ),
+              BusNumberCircle(busNumber: scheduleGroup.busNumber),
 
               const SizedBox(width: AppDimensions.spacingMedium),
 
